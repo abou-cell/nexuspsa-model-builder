@@ -157,6 +157,13 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
     return `${this.selectedSystemId} components`;
   }
 
+  get selectedComponent(): SystemTableRow | undefined {
+    if (this.selectedTableKey !== undefined) {
+      return this.systemRows.find(row => row.key === this.selectedTableKey);
+    }
+    return this.systemRows[0];
+  }
+
   ngAfterViewInit(): void {
     this.viewReady = true;
     this.rebuildDiagram();
@@ -190,6 +197,7 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
     const hydraulicSystem = (this.domain === 'hydraulic' ? this.selectedSystemId : 'PTR') as HydraulicSystemId;
     this.diagram = createModelBuilderDiagram(this.diagramDiv.nativeElement, this.domain, hydraulicSystem);
     this.syncSystemTable();
+    this.selectedTableKey = this.systemRows[0]?.key;
 
     this.diagram.addModelChangedListener(event => {
       if (event.isTransactionFinished) this.syncSystemTable();
@@ -197,7 +205,9 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
 
     this.diagram.addDiagramListener('ChangedSelection', () => {
       const selected = this.diagram?.selection.first();
-      if (selected instanceof go.Node) this.selectedTableKey = Number(selected.data?.key);
+      if (selected instanceof go.Node) {
+        this.selectedTableKey = Number(selected.data?.key);
+      }
     });
   }
 
@@ -218,6 +228,10 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
       support: this.resolveSupport(node.name, node.type),
       status: 'Valid'
     }));
+
+    if (this.selectedTableKey !== undefined && !this.systemRows.some(row => row.key === this.selectedTableKey)) {
+      this.selectedTableKey = this.systemRows[0]?.key;
+    }
   }
 
   private resolveKbClass(type: string): string {
