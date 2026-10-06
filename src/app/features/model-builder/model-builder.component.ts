@@ -3,7 +3,11 @@ import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from '@ang
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import * as go from 'gojs';
-import { createModelBuilderDiagram, ModelDomain } from '../../gojs/model-builder/model-builder-diagram';
+import {
+  createModelBuilderDiagram,
+  HydraulicSystemId,
+  ModelDomain
+} from '../../gojs/model-builder/model-builder-diagram';
 
 interface PaletteItem {
   label: string;
@@ -20,6 +24,14 @@ interface SystemTableRow {
   outputs: number;
   support: string;
   status: string;
+}
+
+interface EngineeringSystem {
+  id: string;
+  description: string;
+  createdAt: string;
+  creatorId: string;
+  domain: ModelDomain;
 }
 
 const DOMAIN_TITLES: Record<ModelDomain, string> = {
@@ -72,6 +84,15 @@ const DOMAIN_PALETTES: Record<ModelDomain, readonly PaletteItem[]> = {
   ]
 };
 
+const SYSTEMS: EngineeringSystem[] = [
+  { id: 'PTR', description: 'Spent Fuel Pool cooling and purification system', createdAt: '2026-10-07', creatorId: 'AR-001', domain: 'hydraulic' },
+  { id: 'RRI', description: 'Component cooling water system', createdAt: '2026-10-07', creatorId: 'AR-001', domain: 'hydraulic' },
+  { id: 'SEC', description: 'Essential service water / ultimate heat sink system', createdAt: '2026-10-07', creatorId: 'AR-001', domain: 'hydraulic' },
+  { id: 'ELEC-A', description: 'Example electrical distribution architecture', createdAt: '2026-10-07', creatorId: 'AR-001', domain: 'electrical' },
+  { id: 'IC-A', description: 'Example control and instrumentation architecture', createdAt: '2026-10-07', creatorId: 'AR-001', domain: 'ic' },
+  { id: 'HVAC-A', description: 'Example ventilation architecture', createdAt: '2026-10-07', creatorId: 'AR-001', domain: 'hvac' }
+];
+
 @Component({
   selector: 'app-model-builder',
   standalone: true,
@@ -86,7 +107,7 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
   workspace = 'editor';
   systemRows: SystemTableRow[] = [];
   selectedTableKey?: number;
-  systemTableCollapsed = false;
+  selectedSystemId = 'PTR';
 
   private diagram?: go.Diagram;
   private readonly subscriptions = new Subscription();
@@ -98,14 +119,13 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
       if (candidate && ['hydraulic', 'electrical', 'ic', 'hvac'].includes(candidate)) {
         this.domain = candidate;
         this.workspace = 'editor';
+        this.selectedSystemId = this.systems[0]?.id ?? 'PTR';
         this.rebuildDiagram();
       }
     }));
 
     this.subscriptions.add(this.route.data.subscribe(data => {
-      if (data['workspace']) {
-        this.workspace = data['workspace'];
-      }
+      if (data['workspace']) this.workspace = data['workspace'];
     }));
   }
 
@@ -125,14 +145,16 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
     return this.domain === 'ic' ? 'I&C' : this.domain.charAt(0).toUpperCase() + this.domain.slice(1);
   }
 
-  get systemTableTitle(): string {
-    const labels: Record<ModelDomain, string> = {
-      hydraulic: 'Hydraulic system components',
-      electrical: 'Electrical architecture components',
-      ic: 'I&C architecture components',
-      hvac: 'HVAC system components'
-    };
-    return labels[this.domain];
+  get systems(): EngineeringSystem[] {
+    return SYSTEMS.filter(system => system.domain === this.domain);
+  }
+
+  get currentSystem(): EngineeringSystem | undefined {
+    return this.systems.find(system => system.id === this.selectedSystemId);
+  }
+
+  get componentTableTitle(): string {
+    return `${this.selectedSystemId} components`;
   }
 
   ngAfterViewInit(): void {
@@ -140,29 +162,17 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
     this.rebuildDiagram();
   }
 
-  undo(): void {
-    this.diagram?.commandHandler.undo();
-  }
+  undo(): void { this.diagram?.commandHandler.undo(); }
+  redo(): void { this.diagram?.commandHandler.redo(); }
+  zoomIn(): void { if (this.diagram) this.diagram.scale *= 1.1; }
+  zoomOut(): void { if (this.diagram) this.diagram.scale /= 1.1; }
+  fit(): void { this.diagram?.zoomToFit(); }
 
-  redo(): void {
-    this.diagram?.commandHandler.redo();
-  }
-
-  zoomIn(): void {
-    if (this.diagram) this.diagram.scale *= 1.1;
-  }
-
-  zoomOut(): void {
-    if (this.diagram) this.diagram.scale /= 1.1;
-  }
-
-  fit(): void {
-    this.diagram?.zoomToFit();
-  }
-
-  toggleSystemTable(): void {
-    this.systemTableCollapsed = !this.systemTableCollapsed;
-    setTimeout(() => this.diagram?.requestUpdate());
+  selectSystem(system: EngineeringSystem): void {
+    if (this.selectedSystemId === system.id) return;
+    this.selectedSystemId = system.id;
+    this.selectedTableKey = undefined;
+    this.rebuildDiagram();
   }
 
   selectSystemRow(row: SystemTableRow): void {
@@ -176,7 +186,9 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
   private rebuildDiagram(): void {
     if (!this.viewReady || !this.diagramDiv) return;
     if (this.diagram) this.diagram.div = null;
-    this.diagram = createModelBuilderDiagram(this.diagramDiv.nativeElement, this.domain);
+
+    const hydraulicSystem = (this.domain === 'hydraulic' ? this.selectedSystemId : 'PTR') as HydraulicSystemId;
+    this.diagram = createModelBuilderDiagram(this.diagramDiv.nativeElement, this.domain, hydraulicSystem);
     this.syncSystemTable();
 
     this.diagram.addModelChangedListener(event => {
@@ -185,9 +197,7 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
 
     this.diagram.addDiagramListener('ChangedSelection', () => {
       const selected = this.diagram?.selection.first();
-      if (selected instanceof go.Node) {
-        this.selectedTableKey = Number(selected.data?.key);
-      }
+      if (selected instanceof go.Node) this.selectedTableKey = Number(selected.data?.key);
     });
   }
 
@@ -213,25 +223,22 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
   private resolveKbClass(type: string): string {
     const normalized = type.toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_|_$/g, '');
     const prefixes: Record<ModelDomain, string> = {
-      hydraulic: 'HYDRAULIC',
-      electrical: 'ELECTRICAL',
-      ic: 'IC',
-      hvac: 'HVAC'
+      hydraulic: 'HYDRAULIC', electrical: 'ELECTRICAL', ic: 'IC', hvac: 'HVAC'
     };
     return `${prefixes[this.domain]}.${normalized}`;
   }
 
   private resolveTrain(identifier: string): string {
     if (/(-B|002|B$)/i.test(identifier)) return 'Train B';
-    if (/ROOM|SFP/i.test(identifier)) return 'Common';
+    if (/ROOM|SFP|SOURCE|ULTIMATE|HX$/i.test(identifier)) return 'Common';
     return 'Train A';
   }
 
   private resolveSupport(identifier: string, type: string): string {
     if (this.domain === 'hydraulic') {
-      if (/PUMP/i.test(type)) return 'LLI205JA';
+      if (/PUMP/i.test(type)) return 'Electrical supply';
       if (/VALVE/i.test(type)) return 'I&C / power';
-      if (/EXCHANGER/i.test(type)) return 'RRI / SEC';
+      if (/EXCHANGER/i.test(type)) return this.selectedSystemId === 'SEC' ? 'Ultimate heat sink' : 'Cooling support';
       return '—';
     }
     if (this.domain === 'electrical') {
