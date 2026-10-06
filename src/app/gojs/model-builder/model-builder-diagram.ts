@@ -1,6 +1,7 @@
 import * as go from 'gojs';
 
 export type ModelDomain = 'hydraulic' | 'electrical' | 'ic' | 'hvac';
+export type HydraulicSystemId = 'PTR' | 'RRI' | 'SEC';
 
 interface DomainSample {
   nodes: Array<{ key: number; name: string; type: string; loc: string }>;
@@ -8,14 +9,14 @@ interface DomainSample {
   accent: string;
 }
 
-const samples: Record<ModelDomain, DomainSample> = {
-  hydraulic: {
+const hydraulicSamples: Record<HydraulicSystemId, DomainSample> = {
+  PTR: {
     accent: '#2563eb',
     nodes: [
-      { key: 1, name: 'PTR001PO', type: 'Pump', loc: '120 150' },
-      { key: 2, name: 'PTR004VB', type: 'Motorized Valve', loc: '330 150' },
-      { key: 3, name: 'RRI001RF', type: 'Heat Exchanger', loc: '555 150' },
-      { key: 4, name: 'SFP', type: 'Pool / Source', loc: '120 310' }
+      { key: 1, name: 'PTR001PO', type: 'Pump', loc: '150 150' },
+      { key: 2, name: 'PTR004VB', type: 'Motorized Valve', loc: '365 150' },
+      { key: 3, name: 'PTR006RF', type: 'Heat Exchanger', loc: '585 150' },
+      { key: 4, name: 'SFP', type: 'Pool / Source', loc: '150 320' }
     ],
     links: [
       { from: 4, to: 1 },
@@ -23,6 +24,41 @@ const samples: Record<ModelDomain, DomainSample> = {
       { from: 2, to: 3 }
     ]
   },
+  RRI: {
+    accent: '#2563eb',
+    nodes: [
+      { key: 1, name: 'RRI001PO', type: 'Pump', loc: '145 155' },
+      { key: 2, name: 'RRI010VB', type: 'Motorized Valve', loc: '355 155' },
+      { key: 3, name: 'RRI001RF', type: 'Heat Exchanger', loc: '570 155' },
+      { key: 4, name: 'RRI-SOURCE', type: 'Tank / Pool', loc: '145 320' },
+      { key: 5, name: 'PTR-HX', type: 'Boundary', loc: '570 320' }
+    ],
+    links: [
+      { from: 4, to: 1 },
+      { from: 1, to: 2 },
+      { from: 2, to: 3 },
+      { from: 3, to: 5 }
+    ]
+  },
+  SEC: {
+    accent: '#2563eb',
+    nodes: [
+      { key: 1, name: 'SEC001PO', type: 'Pump', loc: '145 150' },
+      { key: 2, name: 'SEC005VB', type: 'Motorized Valve', loc: '355 150' },
+      { key: 3, name: 'SEC001RF', type: 'Heat Exchanger', loc: '570 150' },
+      { key: 4, name: 'ULTIMATE-HS', type: 'Boundary', loc: '145 320' },
+      { key: 5, name: 'RRI-HX', type: 'Boundary', loc: '570 320' }
+    ],
+    links: [
+      { from: 4, to: 1 },
+      { from: 1, to: 2 },
+      { from: 2, to: 3 },
+      { from: 3, to: 5 }
+    ]
+  }
+};
+
+const samples: Record<Exclude<ModelDomain, 'hydraulic'>, DomainSample> = {
   electrical: {
     accent: '#d97706',
     nodes: [
@@ -67,9 +103,13 @@ const samples: Record<ModelDomain, DomainSample> = {
   }
 };
 
-export function createModelBuilderDiagram(host: HTMLDivElement, domain: ModelDomain): go.Diagram {
+export function createModelBuilderDiagram(
+  host: HTMLDivElement,
+  domain: ModelDomain,
+  hydraulicSystem: HydraulicSystemId = 'PTR'
+): go.Diagram {
   const $ = go.GraphObject.make;
-  const sample = samples[domain];
+  const sample = domain === 'hydraulic' ? hydraulicSamples[hydraulicSystem] : samples[domain];
 
   const diagram = $(go.Diagram, host, {
     'undoManager.isEnabled': true,
