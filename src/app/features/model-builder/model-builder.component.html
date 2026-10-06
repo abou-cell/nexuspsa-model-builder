@@ -117,7 +117,7 @@
       <div class="components-panel-header">
         <div>
           <strong>{{ componentTableTitle }}</strong>
-          <small>{{ systemRows.length }} components · synchronized with diagram</small>
+          <small>{{ systemRows.length }} components · click a row to display its properties</small>
         </div>
         <button type="button" title="Filter components">⌕</button>
       </div>
@@ -148,13 +148,17 @@
         </table>
       </div>
 
-      <section class="component-details" *ngIf="systemRows.length">
-        <div class="panel-heading">Selected component</div>
-        <div class="detail-grid">
-          <span>Inputs</span><strong>{{ systemRows[0].inputs }}</strong>
-          <span>Outputs</span><strong>{{ systemRows[0].outputs }}</strong>
-          <span>Support</span><strong>{{ systemRows[0].support }}</strong>
-          <span>KB class</span><strong>{{ systemRows[0].kbClass }}</strong>
+      <section class="component-details" *ngIf="selectedComponent as component">
+        <div class="properties-title">Properties · {{ component.identifier }}</div>
+        <div class="properties-card">
+          <div class="property-line"><span>Identifier</span><strong>{{ component.identifier }}</strong></div>
+          <div class="property-line"><span>Type</span><strong>{{ component.componentType }}</strong></div>
+          <div class="property-line"><span>KB class</span><code>{{ component.kbClass }}</code></div>
+          <div class="property-line"><span>Train / division</span><strong>{{ component.train }}</strong></div>
+          <div class="property-line"><span>Inputs</span><strong>{{ component.inputs }}</strong></div>
+          <div class="property-line"><span>Outputs</span><strong>{{ component.outputs }}</strong></div>
+          <div class="property-line"><span>Support</span><strong>{{ component.support }}</strong></div>
+          <div class="property-line"><span>Status</span><span class="table-status"><i></i>{{ component.status }}</span></div>
         </div>
       </section>
     </aside>
