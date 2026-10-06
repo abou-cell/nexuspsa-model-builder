@@ -114,15 +114,20 @@
     </section>
 
     <aside class="right-panel panel">
-      <div class="properties-panel-header">
-        <div>
-          <strong>Properties · {{ selectedSystemId }}</strong>
-          <small>{{ systemRows.length }} components · click a row to select it in the diagram</small>
-        </div>
-        <button type="button" title="Filter properties">⌕</button>
+      <div class="inspector-tabs">
+        <button type="button" [class.active]="inspectorTab === 'properties'" (click)="setInspectorTab('properties')">Properties</button>
+        <button type="button" [class.active]="inspectorTab === 'failures'" (click)="setInspectorTab('failures')">Failures</button>
+        <button type="button" [class.active]="inspectorTab === 'rules'" (click)="setInspectorTab('rules')">Rules</button>
       </div>
 
-      <div class="properties-table-wrap">
+      <div class="properties-panel-header">
+        <div>
+          <strong>{{ selectedComponent?.identifier || selectedSystemId }}</strong>
+          <small>{{ selectedComponent?.componentType || 'No component selected' }} · {{ selectedSystemId }}</small>
+        </div>
+      </div>
+
+      <div class="properties-table-wrap" *ngIf="inspectorTab === 'properties'">
         <table class="properties-table">
           <thead>
             <tr>
@@ -151,11 +156,44 @@
             </tr>
           </tbody>
         </table>
-
-        <div class="properties-empty" *ngIf="!systemRows.length">
-          No component data available for this system.
-        </div>
+        <div class="properties-empty" *ngIf="!systemRows.length">No component data available for this system.</div>
       </div>
+
+      <div class="inspector-content" *ngIf="inspectorTab === 'failures'">
+        <table class="compact-data-table" *ngIf="selectedComponent; else noSelectedComponent">
+          <thead>
+            <tr><th>Code</th><th>Failure mode</th><th>Category</th><th>Enabled</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let failure of failureModes">
+              <td><code>{{ failure.code }}</code></td>
+              <td>{{ failure.name }}</td>
+              <td>{{ failure.category }}</td>
+              <td><span class="mini-status"><i></i>{{ failure.enabled ? 'Yes' : 'No' }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="inspector-content" *ngIf="inspectorTab === 'rules'">
+        <table class="compact-data-table" *ngIf="selectedComponent; else noSelectedComponent">
+          <thead>
+            <tr><th>ID</th><th>Rule</th><th>Condition</th><th>FT result</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let rule of rules">
+              <td><code>{{ rule.id }}</code></td>
+              <td>{{ rule.name }}</td>
+              <td>{{ rule.condition }}</td>
+              <td>{{ rule.result }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-template #noSelectedComponent>
+        <div class="properties-empty">Select a component in the diagram or Properties table.</div>
+      </ng-template>
     </aside>
   </main>
 </div>
