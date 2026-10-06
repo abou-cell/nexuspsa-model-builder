@@ -1,0 +1,44 @@
+<div class="app-shell">
+  <header class="topbar">
+    <div class="brand">NexusPSA</div>
+    <div class="title">Model Builder</div>
+    <div class="actions">
+      <button>Undo</button>
+      <button>Redo</button>
+      <button class="primary">Save model</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="palette panel">
+      <div class="panel-title">Components</div>
+      <button>Pump</button>
+      <button>Valve</button>
+      <button>Heat Exchanger</button>
+      <button>Tank</button>
+      <button>Breaker</button>
+      <button>Bus</button>
+      <button>Signal</button>
+    </aside>
+
+    <section class="canvas-wrap">
+      <div class="canvas-toolbar">
+        <span>System model</span>
+        <span class="muted">Hydraulic / Electrical / I&C</span>
+      </div>
+      <div #diagramDiv class="diagram"></div>
+    </section>
+
+    <aside class="properties panel">
+      <div class="panel-title">Properties</div>
+      <label>Name<input value="PTR001PO" /></label>
+      <label>Class<select><option>Pump</option></select></label>
+      <label>State<select><option>Normal</option></select></label>
+      <div class="section-title">Failure modes</div>
+      <div class="property-row">Fail to start</div>
+      <div class="property-row">Fail to run</div>
+      <div class="section-title">Knowledge Base</div>
+      <div class="property-row">HYDRAULIC.PUMP</div>
+    </aside>
+  </main>
+</div>
