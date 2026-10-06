@@ -1,44 +1,133 @@
-<div class="app-shell">
-  <header class="topbar">
-    <div class="brand">NexusPSA</div>
-    <div class="title">Model Builder</div>
-    <div class="actions">
-      <button>Undo</button>
-      <button>Redo</button>
-      <button class="primary">Save model</button>
+<div class="workspace-shell">
+  <header class="workspace-header">
+    <div>
+      <div class="eyebrow">MODEL BUILDER</div>
+      <h1>{{ title }}</h1>
+      <p *ngIf="workspace === 'editor'">Build the {{ domainLabel }} system architecture and prepare it for rule-based fault-tree generation.</p>
+      <p *ngIf="workspace === 'generation'">Select an undesired event, mission and knowledge-base rule set before generating the FT.</p>
+      <p *ngIf="workspace === 'generated-ft'">Review the automatically generated fault tree before transfer to the NextPSA FT workspace.</p>
+      <p *ngIf="workspace === 'knowledge-base'">Define reusable component classes, ports, attributes and domain semantics.</p>
+      <p *ngIf="workspace === 'rules'">Define failure modes, propagation rules, dependencies and generation logic.</p>
+    </div>
+    <div class="header-actions">
+      <button type="button">Import</button>
+      <button type="button">Export</button>
+      <button type="button" class="primary">Save model</button>
     </div>
   </header>
 
-  <main class="workspace">
-    <aside class="palette panel">
-      <div class="panel-title">Components</div>
-      <button>Pump</button>
-      <button>Valve</button>
-      <button>Heat Exchanger</button>
-      <button>Tank</button>
-      <button>Breaker</button>
-      <button>Bus</button>
-      <button>Signal</button>
+  <div class="context-bar">
+    <span class="breadcrumb">NPP Example Project / SFP / PTR</span>
+    <span class="status"><i></i> Valid model</span>
+    <span class="meta">KB: HYDRAU+ELEC prototype</span>
+    <span class="meta">Revision 0.1</span>
+  </div>
+
+  <main class="workspace-grid">
+    <aside class="left-panel panel">
+      <section class="panel-section">
+        <div class="panel-heading">
+          <span>Component library</span>
+          <button type="button" class="icon-button">+</button>
+        </div>
+        <div class="search-box">⌕ Search components</div>
+        <div class="palette-grid">
+          <button *ngFor="let item of palette" type="button" class="palette-item">
+            <span class="palette-symbol">{{ item.symbol }}</span>
+            <span>{{ item.label }}</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="panel-section model-tree">
+        <div class="panel-heading">Model tree</div>
+        <div class="tree-item root">⌄ PTR — SFP Cooling</div>
+        <div class="tree-item child">⌄ Train A</div>
+        <div class="tree-item leaf">PTR001PO</div>
+        <div class="tree-item leaf">PTR004VB</div>
+        <div class="tree-item child">› Train B</div>
+        <div class="tree-item child">› Support systems</div>
+      </section>
     </aside>
 
-    <section class="canvas-wrap">
-      <div class="canvas-toolbar">
-        <span>System model</span>
-        <span class="muted">Hydraulic / Electrical / I&C</span>
+    <section class="editor-area">
+      <div class="editor-toolbar">
+        <div class="tool-group">
+          <button type="button" (click)="undo()" title="Undo">↶</button>
+          <button type="button" (click)="redo()" title="Redo">↷</button>
+        </div>
+        <div class="tool-group">
+          <button type="button" title="Select">⌖</button>
+          <button type="button" title="Connect">⌁</button>
+          <button type="button" title="Delete">⌫</button>
+        </div>
+        <div class="tool-group">
+          <button type="button" (click)="zoomOut()">−</button>
+          <button type="button" (click)="fit()">Fit</button>
+          <button type="button" (click)="zoomIn()">+</button>
+        </div>
+        <div class="toolbar-spacer"></div>
+        <span class="editor-mode">{{ domainLabel }} editor</span>
+        <button type="button" class="validate">✓ Validate</button>
       </div>
-      <div #diagramDiv class="diagram"></div>
+
+      <div class="canvas-stack">
+        <div #diagramDiv class="diagram"></div>
+        <div class="canvas-badge">GoJS workspace · grid snap · orthogonal links · undo/redo</div>
+      </div>
+
+      <footer class="editor-statusbar">
+        <span>4 components</span>
+        <span>3 connections</span>
+        <span>0 validation errors</span>
+        <span class="spacer"></span>
+        <span>Snap: 10 px</span>
+        <span>100%</span>
+      </footer>
     </section>
 
-    <aside class="properties panel">
-      <div class="panel-title">Properties</div>
-      <label>Name<input value="PTR001PO" /></label>
-      <label>Class<select><option>Pump</option></select></label>
-      <label>State<select><option>Normal</option></select></label>
-      <div class="section-title">Failure modes</div>
-      <div class="property-row">Fail to start</div>
-      <div class="property-row">Fail to run</div>
-      <div class="section-title">Knowledge Base</div>
-      <div class="property-row">HYDRAULIC.PUMP</div>
+    <aside class="right-panel panel">
+      <div class="inspector-tabs">
+        <button type="button" class="active">Properties</button>
+        <button type="button">Failures</button>
+        <button type="button">Rules</button>
+      </div>
+
+      <section class="panel-section">
+        <div class="selection-card">
+          <span class="selection-icon">◉</span>
+          <div>
+            <strong>PTR001PO</strong>
+            <small>Pump · HYDRAULIC.PUMP</small>
+          </div>
+        </div>
+
+        <label>Identifier<input value="PTR001PO" /></label>
+        <label>Description<input value="SFP cooling pump A" /></label>
+        <label>Component class<select><option>HYDRAULIC.PUMP</option></select></label>
+        <label>Train<select><option>Train A</option><option>Train B</option></select></label>
+      </section>
+
+      <section class="panel-section compact">
+        <div class="panel-heading">Ports</div>
+        <div class="property-row"><span>IN</span><strong>Fluid inlet</strong><em>connected</em></div>
+        <div class="property-row"><span>OUT</span><strong>Fluid outlet</strong><em>connected</em></div>
+        <div class="property-row"><span>PWR</span><strong>Power supply</strong><em>LLI205JA</em></div>
+      </section>
+
+      <section class="panel-section compact">
+        <div class="panel-heading">Failure modes</div>
+        <div class="failure-row"><span class="dot red"></span><span>Fail to start</span><code>FTS</code></div>
+        <div class="failure-row"><span class="dot amber"></span><span>Fail to run</span><code>FTR</code></div>
+        <div class="failure-row"><span class="dot purple"></span><span>Spurious stop</span><code>SS</code></div>
+      </section>
+
+      <section class="panel-section compact generation-preview">
+        <div class="panel-heading">FT generation preview</div>
+        <div class="preview-line"><span>Undesired event</span><strong>Loss of PTR Train A</strong></div>
+        <div class="preview-line"><span>Rules matched</span><strong>7</strong></div>
+        <button type="button" class="generate-button">Generate preview</button>
+      </section>
     </aside>
   </main>
 </div>
