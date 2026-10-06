@@ -114,21 +114,25 @@
     </section>
 
     <aside class="right-panel panel">
-      <div class="components-panel-header">
+      <div class="properties-panel-header">
         <div>
-          <strong>{{ componentTableTitle }}</strong>
-          <small>{{ systemRows.length }} components · click a row to display its properties</small>
+          <strong>Properties · {{ selectedSystemId }}</strong>
+          <small>{{ systemRows.length }} components · click a row to select it in the diagram</small>
         </div>
-        <button type="button" title="Filter components">⌕</button>
+        <button type="button" title="Filter properties">⌕</button>
       </div>
 
-      <div class="component-table-wrap">
-        <table class="component-table">
+      <div class="properties-table-wrap">
+        <table class="properties-table">
           <thead>
             <tr>
               <th>Identifier</th>
               <th>Type</th>
+              <th>KB class</th>
               <th>Train</th>
+              <th>In</th>
+              <th>Out</th>
+              <th>Support</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -136,31 +140,22 @@
             <tr *ngFor="let row of systemRows"
                 (click)="selectSystemRow(row)"
                 [class.selected]="selectedTableKey === row.key">
-              <td>
-                <strong>{{ row.identifier }}</strong>
-                <small>{{ row.kbClass }}</small>
-              </td>
+              <td><strong>{{ row.identifier }}</strong></td>
               <td>{{ row.componentType }}</td>
+              <td><code>{{ row.kbClass }}</code></td>
               <td>{{ row.train }}</td>
+              <td class="numeric">{{ row.inputs }}</td>
+              <td class="numeric">{{ row.outputs }}</td>
+              <td>{{ row.support }}</td>
               <td><span class="mini-status"><i></i>{{ row.status }}</span></td>
             </tr>
           </tbody>
         </table>
-      </div>
 
-      <section class="component-details" *ngIf="selectedComponent as component">
-        <div class="properties-title">Properties · {{ component.identifier }}</div>
-        <div class="properties-card">
-          <div class="property-line"><span>Identifier</span><strong>{{ component.identifier }}</strong></div>
-          <div class="property-line"><span>Type</span><strong>{{ component.componentType }}</strong></div>
-          <div class="property-line"><span>KB class</span><code>{{ component.kbClass }}</code></div>
-          <div class="property-line"><span>Train / division</span><strong>{{ component.train }}</strong></div>
-          <div class="property-line"><span>Inputs</span><strong>{{ component.inputs }}</strong></div>
-          <div class="property-line"><span>Outputs</span><strong>{{ component.outputs }}</strong></div>
-          <div class="property-line"><span>Support</span><strong>{{ component.support }}</strong></div>
-          <div class="property-line"><span>Status</span><span class="table-status"><i></i>{{ component.status }}</span></div>
+        <div class="properties-empty" *ngIf="!systemRows.length">
+          No component data available for this system.
         </div>
-      </section>
+      </div>
     </aside>
   </main>
 </div>
