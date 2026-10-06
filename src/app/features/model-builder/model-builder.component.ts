@@ -34,6 +34,22 @@ interface EngineeringSystem {
   domain: ModelDomain;
 }
 
+interface FailureModeRow {
+  code: string;
+  name: string;
+  category: string;
+  enabled: boolean;
+}
+
+interface RuleRow {
+  id: string;
+  name: string;
+  condition: string;
+  result: string;
+}
+
+type InspectorTab = 'properties' | 'failures' | 'rules';
+
 const DOMAIN_TITLES: Record<ModelDomain, string> = {
   hydraulic: 'Hydraulic Knowledge-Base Editor',
   electrical: 'Electrical Architecture Editor',
@@ -108,6 +124,7 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
   systemRows: SystemTableRow[] = [];
   selectedTableKey?: number;
   selectedSystemId = 'PTR';
+  inspectorTab: InspectorTab = 'properties';
 
   private diagram?: go.Diagram;
   private readonly subscriptions = new Subscription();
@@ -120,6 +137,7 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
         this.domain = candidate;
         this.workspace = 'editor';
         this.selectedSystemId = this.systems[0]?.id ?? 'PTR';
+        this.inspectorTab = 'properties';
         this.rebuildDiagram();
       }
     }));
@@ -137,31 +155,58 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
     return DOMAIN_TITLES[this.domain];
   }
 
-  get palette(): readonly PaletteItem[] {
-    return DOMAIN_PALETTES[this.domain];
-  }
+  get palette(): readonly PaletteItem[] { return DOMAIN_PALETTES[this.domain]; }
 
   get domainLabel(): string {
     return this.domain === 'ic' ? 'I&C' : this.domain.charAt(0).toUpperCase() + this.domain.slice(1);
   }
 
-  get systems(): EngineeringSystem[] {
-    return SYSTEMS.filter(system => system.domain === this.domain);
-  }
-
-  get currentSystem(): EngineeringSystem | undefined {
-    return this.systems.find(system => system.id === this.selectedSystemId);
-  }
-
-  get componentTableTitle(): string {
-    return `${this.selectedSystemId} components`;
-  }
+  get systems(): EngineeringSystem[] { return SYSTEMS.filter(system => system.domain === this.domain); }
 
   get selectedComponent(): SystemTableRow | undefined {
-    if (this.selectedTableKey !== undefined) {
-      return this.systemRows.find(row => row.key === this.selectedTableKey);
+    return this.systemRows.find(row => row.key === this.selectedTableKey) ?? this.systemRows[0];
+  }
+
+  get failureModes(): FailureModeRow[] {
+    const component = this.selectedComponent;
+    if (!component) return [];
+    const type = component.componentType.toUpperCase();
+    if (/PUMP|FAN|MOTOR|DIESEL/.test(type)) {
+      return [
+        { code: 'FTS', name: 'Fail to start', category: 'Demand', enabled: true },
+        { code: 'FTR', name: 'Fail to run', category: 'Mission', enabled: true },
+        { code: 'SS', name: 'Spurious stop', category: 'Spurious', enabled: true }
+      ];
     }
-    return this.systemRows[0];
+    if (/VALVE|DAMPER|BREAKER/.test(type)) {
+      return [
+        { code: 'FTC', name: 'Fail to change state', category: 'Demand', enabled: true },
+        { code: 'FO', name: 'Fail open', category: 'Position', enabled: true },
+        { code: 'FC', name: 'Fail closed', category: 'Position', enabled: true }
+      ];
+    }
+    if (/HEAT EXCHANGER|FILTER|TRANSFORMER/.test(type)) {
+      return [
+        { code: 'DEG', name: 'Degraded function', category: 'Performance', enabled: true },
+        { code: 'LOF', name: 'Loss of function', category: 'Mission', enabled: true }
+      ];
+    }
+    return [
+      { code: 'LOF', name: 'Loss of function', category: 'Mission', enabled: true },
+      { code: 'UNAV', name: 'Unavailable', category: 'State', enabled: true }
+    ];
+  }
+
+  get rules(): RuleRow[] {
+    const component = this.selectedComponent;
+    if (!component) return [];
+    const rows: RuleRow[] = [
+      { id: 'R-01', name: 'Component availability', condition: `${component.identifier} required`, result: `Include ${component.identifier} failure modes` }
+    ];
+    if (component.inputs > 0) rows.push({ id: 'R-02', name: 'Upstream dependency', condition: 'Required upstream path unavailable', result: 'Propagate loss of function' });
+    if (component.support !== '—') rows.push({ id: 'R-03', name: 'Support dependency', condition: `${component.support} unavailable`, result: `Set ${component.identifier} unavailable` });
+    if (/VALVE|BREAKER|DAMPER/i.test(component.componentType)) rows.push({ id: 'R-04', name: 'Command dependency', condition: 'Required command not received', result: 'Generate actuation failure branch' });
+    return rows;
   }
 
   ngAfterViewInit(): void {
@@ -175,10 +220,13 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
   zoomOut(): void { if (this.diagram) this.diagram.scale /= 1.1; }
   fit(): void { this.diagram?.zoomToFit(); }
 
+  setInspectorTab(tab: InspectorTab): void { this.inspectorTab = tab; }
+
   selectSystem(system: EngineeringSystem): void {
     if (this.selectedSystemId === system.id) return;
     this.selectedSystemId = system.id;
     this.selectedTableKey = undefined;
+    this.inspectorTab = 'properties';
     this.rebuildDiagram();
   }
 
@@ -205,9 +253,7 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
 
     this.diagram.addDiagramListener('ChangedSelection', () => {
       const selected = this.diagram?.selection.first();
-      if (selected instanceof go.Node) {
-        this.selectedTableKey = Number(selected.data?.key);
-      }
+      if (selected instanceof go.Node) this.selectedTableKey = Number(selected.data?.key);
     });
   }
 
@@ -236,9 +282,7 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
 
   private resolveKbClass(type: string): string {
     const normalized = type.toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_|_$/g, '');
-    const prefixes: Record<ModelDomain, string> = {
-      hydraulic: 'HYDRAULIC', electrical: 'ELECTRICAL', ic: 'IC', hvac: 'HVAC'
-    };
+    const prefixes: Record<ModelDomain, string> = { hydraulic: 'HYDRAULIC', electrical: 'ELECTRICAL', ic: 'IC', hvac: 'HVAC' };
     return `${prefixes[this.domain]}.${normalized}`;
   }
 
