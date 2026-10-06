@@ -17,7 +17,7 @@
   </header>
 
   <div class="context-bar">
-    <span class="breadcrumb">NPP Example Project / SFP / PTR</span>
+    <span class="breadcrumb">NPP Example Project / {{ domainLabel }} / {{ selectedSystemId }}</span>
     <span class="status"><i></i> Valid model</span>
     <span class="meta">KB: HYDRAU+ELEC prototype</span>
     <span class="meta">Revision 0.1</span>
@@ -25,7 +25,7 @@
 
   <main class="workspace-grid">
     <aside class="left-panel panel">
-      <section class="panel-section">
+      <section class="panel-section component-library-section">
         <div class="panel-heading">
           <span>Component library</span>
           <button type="button" class="icon-button">+</button>
@@ -57,7 +57,7 @@
           <button type="button" (click)="zoomIn()">+</button>
         </div>
         <div class="toolbar-spacer"></div>
-        <span class="editor-mode">{{ domainLabel }} editor</span>
+        <span class="editor-mode">{{ domainLabel }} editor · {{ selectedSystemId }}</span>
         <button type="button" class="validate">✓ Validate</button>
       </div>
 
@@ -67,46 +67,35 @@
           <div class="canvas-badge">GoJS workspace · grid snap · orthogonal links · undo/redo</div>
         </div>
 
-        <section class="system-table-panel" [class.collapsed]="systemTableCollapsed">
-          <header class="system-table-header">
+        <section class="systems-panel">
+          <header class="systems-header">
             <div>
-              <strong>{{ systemTableTitle }}</strong>
-              <span>{{ systemRows.length }} components · synchronized with diagram</span>
+              <strong>{{ domainLabel }} systems</strong>
+              <span>{{ systems.length }} system{{ systems.length > 1 ? 's' : '' }} · click a row to open its diagram</span>
             </div>
-            <div class="system-table-actions">
-              <button type="button" title="Filter components">⌕ Filter</button>
-              <button type="button" title="Collapse table" (click)="toggleSystemTable()">
-                {{ systemTableCollapsed ? 'Expand' : 'Collapse' }}
-              </button>
-            </div>
+            <button type="button" class="new-system-button">+ New system</button>
           </header>
 
-          <div class="system-table-wrap" *ngIf="!systemTableCollapsed">
-            <table class="system-table">
+          <div class="systems-table-wrap">
+            <table class="systems-table">
               <thead>
                 <tr>
-                  <th>Identifier</th>
-                  <th>Component</th>
-                  <th>KB class</th>
-                  <th>Train / division</th>
-                  <th class="numeric">Inputs</th>
-                  <th class="numeric">Outputs</th>
-                  <th>Support / power / control</th>
+                  <th>System</th>
+                  <th>Description</th>
+                  <th>Creation date</th>
+                  <th>Creator ID</th>
                   <th>Status</th>
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let row of systemRows"
-                    (click)="selectSystemRow(row)"
-                    [class.selected]="selectedTableKey === row.key">
-                  <td><strong>{{ row.identifier }}</strong></td>
-                  <td>{{ row.componentType }}</td>
-                  <td><code>{{ row.kbClass }}</code></td>
-                  <td>{{ row.train }}</td>
-                  <td class="numeric">{{ row.inputs }}</td>
-                  <td class="numeric">{{ row.outputs }}</td>
-                  <td>{{ row.support }}</td>
-                  <td><span class="table-status"><i></i>{{ row.status }}</span></td>
+                <tr *ngFor="let system of systems"
+                    (click)="selectSystem(system)"
+                    [class.selected]="selectedSystemId === system.id">
+                  <td><strong>{{ system.id }}</strong></td>
+                  <td>{{ system.description }}</td>
+                  <td>{{ system.createdAt }}</td>
+                  <td><code>{{ system.creatorId }}</code></td>
+                  <td><span class="table-status"><i></i>{{ selectedSystemId === system.id ? 'Open' : 'Valid' }}</span></td>
                 </tr>
               </tbody>
             </table>
@@ -116,7 +105,7 @@
 
       <footer class="editor-statusbar">
         <span>{{ systemRows.length }} components</span>
-        <span>3 connections</span>
+        <span>{{ selectedSystemId }} system</span>
         <span>0 validation errors</span>
         <span class="spacer"></span>
         <span>Snap: 10 px</span>
@@ -125,46 +114,48 @@
     </section>
 
     <aside class="right-panel panel">
-      <div class="inspector-tabs">
-        <button type="button" class="active">Properties</button>
-        <button type="button">Failures</button>
-        <button type="button">Rules</button>
+      <div class="components-panel-header">
+        <div>
+          <strong>{{ componentTableTitle }}</strong>
+          <small>{{ systemRows.length }} components · synchronized with diagram</small>
+        </div>
+        <button type="button" title="Filter components">⌕</button>
       </div>
 
-      <section class="panel-section">
-        <div class="selection-card">
-          <span class="selection-icon">◉</span>
-          <div>
-            <strong>PTR001PO</strong>
-            <small>Pump · HYDRAULIC.PUMP</small>
-          </div>
+      <div class="component-table-wrap">
+        <table class="component-table">
+          <thead>
+            <tr>
+              <th>Identifier</th>
+              <th>Type</th>
+              <th>Train</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of systemRows"
+                (click)="selectSystemRow(row)"
+                [class.selected]="selectedTableKey === row.key">
+              <td>
+                <strong>{{ row.identifier }}</strong>
+                <small>{{ row.kbClass }}</small>
+              </td>
+              <td>{{ row.componentType }}</td>
+              <td>{{ row.train }}</td>
+              <td><span class="mini-status"><i></i>{{ row.status }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <section class="component-details" *ngIf="systemRows.length">
+        <div class="panel-heading">Selected component</div>
+        <div class="detail-grid">
+          <span>Inputs</span><strong>{{ systemRows[0].inputs }}</strong>
+          <span>Outputs</span><strong>{{ systemRows[0].outputs }}</strong>
+          <span>Support</span><strong>{{ systemRows[0].support }}</strong>
+          <span>KB class</span><strong>{{ systemRows[0].kbClass }}</strong>
         </div>
-
-        <label>Identifier<input value="PTR001PO" /></label>
-        <label>Description<input value="SFP cooling pump A" /></label>
-        <label>Component class<select><option>HYDRAULIC.PUMP</option></select></label>
-        <label>Train<select><option>Train A</option><option>Train B</option></select></label>
-      </section>
-
-      <section class="panel-section compact">
-        <div class="panel-heading">Ports</div>
-        <div class="property-row"><span>IN</span><strong>Fluid inlet</strong><em>connected</em></div>
-        <div class="property-row"><span>OUT</span><strong>Fluid outlet</strong><em>connected</em></div>
-        <div class="property-row"><span>PWR</span><strong>Power supply</strong><em>LLI205JA</em></div>
-      </section>
-
-      <section class="panel-section compact">
-        <div class="panel-heading">Failure modes</div>
-        <div class="failure-row"><span class="dot red"></span><span>Fail to start</span><code>FTS</code></div>
-        <div class="failure-row"><span class="dot amber"></span><span>Fail to run</span><code>FTR</code></div>
-        <div class="failure-row"><span class="dot purple"></span><span>Spurious stop</span><code>SS</code></div>
-      </section>
-
-      <section class="panel-section compact generation-preview">
-        <div class="panel-heading">FT generation preview</div>
-        <div class="preview-line"><span>Undesired event</span><strong>Loss of PTR Train A</strong></div>
-        <div class="preview-line"><span>Rules matched</span><strong>7</strong></div>
-        <button type="button" class="generate-button">Generate preview</button>
       </section>
     </aside>
   </main>
