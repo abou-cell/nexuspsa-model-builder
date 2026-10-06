@@ -71,13 +71,61 @@
         <button type="button" class="validate">✓ Validate</button>
       </div>
 
-      <div class="canvas-stack">
-        <div #diagramDiv class="diagram"></div>
-        <div class="canvas-badge">GoJS workspace · grid snap · orthogonal links · undo/redo</div>
+      <div class="editor-main">
+        <div class="canvas-stack">
+          <div #diagramDiv class="diagram"></div>
+          <div class="canvas-badge">GoJS workspace · grid snap · orthogonal links · undo/redo</div>
+        </div>
+
+        <section class="system-table-panel" [class.collapsed]="systemTableCollapsed">
+          <header class="system-table-header">
+            <div>
+              <strong>{{ systemTableTitle }}</strong>
+              <span>{{ systemRows.length }} components · synchronized with diagram</span>
+            </div>
+            <div class="system-table-actions">
+              <button type="button" title="Filter components">⌕ Filter</button>
+              <button type="button" title="Collapse table" (click)="toggleSystemTable()">
+                {{ systemTableCollapsed ? 'Expand' : 'Collapse' }}
+              </button>
+            </div>
+          </header>
+
+          <div class="system-table-wrap" *ngIf="!systemTableCollapsed">
+            <table class="system-table">
+              <thead>
+                <tr>
+                  <th>Identifier</th>
+                  <th>Component</th>
+                  <th>KB class</th>
+                  <th>Train / division</th>
+                  <th class="numeric">Inputs</th>
+                  <th class="numeric">Outputs</th>
+                  <th>Support / power / control</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of systemRows"
+                    (click)="selectSystemRow(row)"
+                    [class.selected]="selectedTableKey === row.key">
+                  <td><strong>{{ row.identifier }}</strong></td>
+                  <td>{{ row.componentType }}</td>
+                  <td><code>{{ row.kbClass }}</code></td>
+                  <td>{{ row.train }}</td>
+                  <td class="numeric">{{ row.inputs }}</td>
+                  <td class="numeric">{{ row.outputs }}</td>
+                  <td>{{ row.support }}</td>
+                  <td><span class="table-status"><i></i>{{ row.status }}</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
       </div>
 
       <footer class="editor-statusbar">
-        <span>4 components</span>
+        <span>{{ systemRows.length }} components</span>
         <span>3 connections</span>
         <span>0 validation errors</span>
         <span class="spacer"></span>
