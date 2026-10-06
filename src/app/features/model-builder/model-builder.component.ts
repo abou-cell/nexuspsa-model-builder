@@ -10,6 +10,18 @@ interface PaletteItem {
   symbol: string;
 }
 
+interface SystemTableRow {
+  key: number;
+  identifier: string;
+  componentType: string;
+  kbClass: string;
+  train: string;
+  inputs: number;
+  outputs: number;
+  support: string;
+  status: string;
+}
+
 const DOMAIN_TITLES: Record<ModelDomain, string> = {
   hydraulic: 'Hydraulic Knowledge-Base Editor',
   electrical: 'Electrical Architecture Editor',
@@ -72,6 +84,10 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
 
   domain: ModelDomain = 'hydraulic';
   workspace = 'editor';
+  systemRows: SystemTableRow[] = [];
+  selectedTableKey?: number;
+  systemTableCollapsed = false;
+
   private diagram?: go.Diagram;
   private readonly subscriptions = new Subscription();
   private viewReady = false;
@@ -109,6 +125,16 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
     return this.domain === 'ic' ? 'I&C' : this.domain.charAt(0).toUpperCase() + this.domain.slice(1);
   }
 
+  get systemTableTitle(): string {
+    const labels: Record<ModelDomain, string> = {
+      hydraulic: 'Hydraulic system components',
+      electrical: 'Electrical architecture components',
+      ic: 'I&C architecture components',
+      hvac: 'HVAC system components'
+    };
+    return labels[this.domain];
+  }
+
   ngAfterViewInit(): void {
     this.viewReady = true;
     this.rebuildDiagram();
@@ -134,10 +160,96 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
     this.diagram?.zoomToFit();
   }
 
+  toggleSystemTable(): void {
+    this.systemTableCollapsed = !this.systemTableCollapsed;
+    setTimeout(() => this.diagram?.requestUpdate());
+  }
+
+  selectSystemRow(row: SystemTableRow): void {
+    this.selectedTableKey = row.key;
+    const node = this.diagram?.findNodeForKey(row.key);
+    if (!node || !this.diagram) return;
+    this.diagram.select(node);
+    this.diagram.centerRect(node.actualBounds);
+  }
+
   private rebuildDiagram(): void {
     if (!this.viewReady || !this.diagramDiv) return;
     if (this.diagram) this.diagram.div = null;
     this.diagram = createModelBuilderDiagram(this.diagramDiv.nativeElement, this.domain);
+    this.syncSystemTable();
+
+    this.diagram.addModelChangedListener(event => {
+      if (event.isTransactionFinished) this.syncSystemTable();
+    });
+
+    this.diagram.addDiagramListener('ChangedSelection', () => {
+      const selected = this.diagram?.selection.first();
+      if (selected instanceof go.Node) {
+        this.selectedTableKey = Number(selected.data?.key);
+      }
+    });
+  }
+
+  private syncSystemTable(): void {
+    if (!this.diagram) return;
+    const model = this.diagram.model as go.GraphLinksModel;
+    const nodes = model.nodeDataArray as Array<{ key: number; name: string; type: string }>;
+    const links = model.linkDataArray as Array<{ from: number; to: number }>;
+
+    this.systemRows = nodes.map(node => ({
+      key: node.key,
+      identifier: node.name,
+      componentType: node.type,
+      kbClass: this.resolveKbClass(node.type),
+      train: this.resolveTrain(node.name),
+      inputs: links.filter(link => link.to === node.key).length,
+      outputs: links.filter(link => link.from === node.key).length,
+      support: this.resolveSupport(node.name, node.type),
+      status: 'Valid'
+    }));
+  }
+
+  private resolveKbClass(type: string): string {
+    const normalized = type.toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_|_$/g, '');
+    const prefixes: Record<ModelDomain, string> = {
+      hydraulic: 'HYDRAULIC',
+      electrical: 'ELECTRICAL',
+      ic: 'IC',
+      hvac: 'HVAC'
+    };
+    return `${prefixes[this.domain]}.${normalized}`;
+  }
+
+  private resolveTrain(identifier: string): string {
+    if (/(-B|002|B$)/i.test(identifier)) return 'Train B';
+    if (/ROOM|SFP/i.test(identifier)) return 'Common';
+    return 'Train A';
+  }
+
+  private resolveSupport(identifier: string, type: string): string {
+    if (this.domain === 'hydraulic') {
+      if (/PUMP/i.test(type)) return 'LLI205JA';
+      if (/VALVE/i.test(type)) return 'I&C / power';
+      if (/EXCHANGER/i.test(type)) return 'RRI / SEC';
+      return '—';
+    }
+    if (this.domain === 'electrical') {
+      if (/MOTOR/i.test(type)) return 'LLI205JA';
+      if (/BREAKER/i.test(type)) return 'Protection / I&C';
+      if (/DIESEL/i.test(type)) return 'Fuel / auxiliaries';
+      return 'Upstream supply';
+    }
+    if (this.domain === 'ic') {
+      if (/POWER/i.test(type)) return 'DC / AC supply';
+      if (/SENSOR/i.test(type)) return 'Process input';
+      if (/LOGIC/i.test(type)) return 'I&C power';
+      return 'Logic channel';
+    }
+    if (/FAN/i.test(type)) return 'Electrical supply';
+    if (/DAMPER/i.test(type)) return 'Actuation / I&C';
+    if (/ROOM/i.test(identifier)) return 'Boundary condition';
+    return 'Air path';
   }
 
   ngOnDestroy(): void {
