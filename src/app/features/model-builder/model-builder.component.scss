@@ -1,0 +1,68 @@
+:host { display: block; width: 100%; height: 100%; }
+
+.app-shell { width: 100%; height: 100vh; background: var(--nps-app-bg); }
+
+.topbar {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 16px;
+  background: var(--nps-topbar);
+  color: #fff;
+}
+
+.brand { font-weight: 800; letter-spacing: .3px; }
+.title { font-weight: 600; opacity: .92; }
+.actions { margin-left: auto; display: flex; gap: 8px; }
+
+button {
+  border: 1px solid var(--nps-border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--nps-text);
+  padding: 7px 10px;
+  cursor: pointer;
+}
+
+.topbar button { border-color: #29415e; background: #102d4c; color: #fff; }
+.topbar button.primary { background: var(--nps-blue); border-color: var(--nps-blue); }
+
+.workspace {
+  height: calc(100vh - 48px);
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr) 260px;
+  gap: 1px;
+  background: var(--nps-border);
+}
+
+.panel { background: var(--nps-surface); padding: 12px; overflow: auto; }
+.panel-title { font-weight: 700; margin-bottom: 12px; }
+.palette { display: flex; flex-direction: column; gap: 8px; }
+
+.canvas-wrap { min-width: 0; display: flex; flex-direction: column; background: #fff; }
+.canvas-toolbar {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--nps-border);
+  font-weight: 600;
+}
+.muted { color: var(--nps-text-muted); font-weight: 400; }
+.diagram { flex: 1; min-height: 0; background: #fff; }
+
+.properties label { display: block; margin-bottom: 10px; color: var(--nps-text-muted); }
+.properties input,
+.properties select {
+  width: 100%;
+  margin-top: 4px;
+  padding: 7px 8px;
+  border: 1px solid var(--nps-border);
+  border-radius: 5px;
+  background: #fff;
+  color: var(--nps-text);
+}
+.section-title { margin: 16px 0 6px; font-weight: 700; color: var(--nps-text); }
+.property-row { padding: 7px 8px; background: var(--nps-surface-alt); border: 1px solid var(--nps-border); border-radius: 5px; margin-bottom: 6px; }
