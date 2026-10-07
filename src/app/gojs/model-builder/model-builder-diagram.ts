@@ -1,5 +1,6 @@
 import * as go from 'gojs';
 import { installHydraulicPidTemplates } from './hydraulic-pid-symbols';
+import { installValidatedHydraulicTemplates } from './validated-hydraulic-symbols';
 
 export type ModelDomain = 'hydraulic' | 'electrical' | 'ic' | 'hvac';
 export type HydraulicSystemId = 'PTR' | 'RRI' | 'SEC';
@@ -27,14 +28,14 @@ interface DomainSample {
 
 const hydraulicSamples: Record<HydraulicSystemId, DomainSample> = {
   PTR: {
-    accent: '#2563eb',
+    accent: '#1d4ed8',
     nodes: [
-      { key: 1, name: 'PTR001PO', type: 'Pump', loc: '150 145' },
+      { key: 1, name: 'PTR001PO', type: 'Motor Pump', loc: '150 145' },
       { key: 2, name: 'PTR003VB', type: 'Check Valve', loc: '275 145' },
       { key: 3, name: 'PTR004VB', type: 'Motorized Valve', loc: '395 145' },
-      { key: 4, name: 'PTR006EX', type: 'Heat Exchanger', loc: '545 145' },
-      { key: 5, name: 'SFP', type: 'Pool / Source', loc: '150 300' },
-      { key: 6, name: 'PTR-FE', type: 'Flow Element', loc: '395 270' }
+      { key: 4, name: 'PTR006EX', type: 'Reheater', loc: '545 145' },
+      { key: 5, name: 'SFP', type: 'Reservoir', loc: '150 300' },
+      { key: 6, name: 'PTR-FIP', type: 'FIP', loc: '395 270' }
     ],
     links: [
       { from: 5, to: 1, fromPort: 'OUT', toPort: 'IN' },
@@ -44,15 +45,15 @@ const hydraulicSamples: Record<HydraulicSystemId, DomainSample> = {
     ]
   },
   RRI: {
-    accent: '#2563eb',
+    accent: '#1d4ed8',
     nodes: [
       { key: 1, name: 'RRI009VB', type: 'Manual Valve', loc: '105 150' },
-      { key: 2, name: 'RRI001PO', type: 'Pump', loc: '230 150' },
+      { key: 2, name: 'RRI001PO', type: 'Motor Pump', loc: '230 150' },
       { key: 3, name: 'RRI010VB', type: 'Motorized Valve', loc: '355 150' },
-      { key: 4, name: 'RRI001EX', type: 'Heat Exchanger', loc: '505 150' },
-      { key: 5, name: 'RRI-SOURCE', type: 'Tank / Vessel', loc: '105 300' },
-      { key: 6, name: 'PTR', type: 'Off-page Connector', loc: '635 300' },
-      { key: 7, name: 'RRI-INST', type: 'Instrument', loc: '355 275' }
+      { key: 4, name: 'RRI001EX', type: 'Reheater', loc: '505 150' },
+      { key: 5, name: 'RRI-SOURCE', type: 'Tank', loc: '105 300' },
+      { key: 6, name: 'PTR', type: 'Transfer', loc: '635 300' },
+      { key: 7, name: 'RRI-KD', type: 'KD', loc: '355 275' }
     ],
     links: [
       { from: 5, to: 1, fromPort: 'OUT', toPort: 'IN' },
@@ -63,15 +64,15 @@ const hydraulicSamples: Record<HydraulicSystemId, DomainSample> = {
     ]
   },
   SEC: {
-    accent: '#2563eb',
+    accent: '#1d4ed8',
     nodes: [
-      { key: 1, name: 'SEC001PO', type: 'Vertical Pump', loc: '145 150' },
+      { key: 1, name: 'SEC001PO', type: 'Motor Pump', loc: '145 150' },
       { key: 2, name: 'SEC003VB', type: 'Check Valve', loc: '265 150' },
       { key: 3, name: 'SEC005VB', type: 'Motorized Valve', loc: '385 150' },
-      { key: 4, name: 'SEC001EX', type: 'Heat Exchanger', loc: '535 150' },
-      { key: 5, name: 'ULTIMATE-HS', type: 'Pool / Source', loc: '145 305' },
-      { key: 6, name: 'RRI', type: 'Off-page Connector', loc: '650 305' },
-      { key: 7, name: 'SEC-FLT', type: 'Filter / Strainer', loc: '385 290' }
+      { key: 4, name: 'SEC001EX', type: 'Reheater', loc: '535 150' },
+      { key: 5, name: 'ULTIMATE-HS', type: 'Reservoir', loc: '145 305' },
+      { key: 6, name: 'RRI', type: 'Transfer', loc: '650 305' },
+      { key: 7, name: 'SEC-FLT', type: 'Filter', loc: '385 290' }
     ],
     links: [
       { from: 5, to: 1, fromPort: 'OUT', toPort: 'IN' },
@@ -171,7 +172,10 @@ export function createModelBuilderDiagram(
   );
 
   if (domain === 'hydraulic') {
+    // Keep legacy templates for backward compatibility, then install the
+    // validated legend so shared categories use the newly approved graphics.
     installHydraulicPidTemplates(diagram, { accent: sample.accent });
+    installValidatedHydraulicTemplates(diagram, { accent: sample.accent });
   }
 
   diagram.nodeTemplate = $(go.Node, 'Auto',
@@ -219,7 +223,7 @@ export function createModelBuilderDiagram(
       adjusting: go.LinkAdjusting.End
     },
     $(go.Shape, {
-      stroke: domain === 'hydraulic' ? '#2563eb' : '#64748b',
+      stroke: domain === 'hydraulic' ? '#1d4ed8' : '#64748b',
       strokeWidth: domain === 'hydraulic' ? 1.35 : 1.5
     }),
     $(go.Shape, {
