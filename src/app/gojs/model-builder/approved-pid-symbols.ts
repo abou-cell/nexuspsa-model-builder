@@ -7,7 +7,13 @@ interface PictureSymbolSpec { category: string; source: string; width: number; h
 export function installApprovedPidSymbols(target: go.Diagram | go.Palette, options: ApprovedPidSymbolOptions = {}): void {
   const $ = go.GraphObject.make;
   const palette = options.palette ?? false;
-  const k = palette ? 0.9 : 1;
+
+  // P&ID symbols are intentionally compact.  Keep the SVG master geometry
+  // unchanged and only scale the GoJS presentation layer.
+  // Palette is slightly smaller than the engineering canvas so more symbols
+  // remain visible at once, while relative proportions are preserved.
+  const k = palette ? 0.72 : 0.78;
+
   const hydraulic = '#1647ff';
   const electrical = '#0f172a';
   const control = '#7c3aed';
@@ -26,7 +32,7 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
     height: 6 * k,
     fill: '#ffffff',
     stroke: spec.stroke ?? hydraulic,
-    strokeWidth: 1.1,
+    strokeWidth: 1.0,
     opacity: 0,
     portId: spec.id,
     fromLinkable: !palette && spec.from,
@@ -37,12 +43,12 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
   });
 
   const makeCaption = (): go.TextBlock => $(go.TextBlock, {
-    margin: new go.Margin(4 * k, 0, 0, 0),
-    font: `${palette ? 7.6 : 8.8}px Inter, sans-serif`,
+    margin: new go.Margin(3 * k, 0, 0, 0),
+    font: `${palette ? 7.2 : 8.2}px Inter, sans-serif`,
     stroke: '#172033',
     textAlign: 'center',
     editable: !palette,
-    maxSize: new go.Size((palette ? 108 : 132) * k, NaN)
+    maxSize: new go.Size((palette ? 104 : 126) * k, NaN)
   }, palette ? new go.Binding('text', 'type') : new go.Binding('text', 'name').makeTwoWay());
 
   const addPictureSymbol = (spec: PictureSymbolSpec): void => {
