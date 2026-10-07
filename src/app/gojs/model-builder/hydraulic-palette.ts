@@ -1,6 +1,7 @@
 import * as go from 'gojs';
 import { installHydraulicPidTemplates } from './hydraulic-pid-symbols';
 import { installValidatedHydraulicTemplates } from './validated-hydraulic-symbols';
+import { installApprovedPidSymbols } from './approved-pid-symbols';
 
 interface PaletteNodeData {
   key: string;
@@ -65,10 +66,12 @@ export function createHydraulicPalette(host: HTMLDivElement): go.Palette {
     })
   });
 
-  // Legacy templates remain available for existing models; validated templates
-  // are installed afterwards so shared categories use the approved graphics.
   installHydraulicPidTemplates(palette, { palette: true, accent: '#1d4ed8' });
   installValidatedHydraulicTemplates(palette, { palette: true, accent: '#1d4ed8' });
+
+  // Approved symbols are installed last so they override earlier approximations.
+  // The Motor Pump now renders from the exact SVG master validated by the user.
+  installApprovedPidSymbols(palette, { palette: true });
 
   const model = new go.GraphLinksModel(ITEMS);
   model.copiesKey = false;
