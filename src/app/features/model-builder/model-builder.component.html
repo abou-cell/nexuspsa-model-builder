@@ -32,9 +32,14 @@
         </div>
         <div class="search-box">⌕ Search components</div>
 
-        <div class="gojs-palette-shell" *ngIf="domain === 'hydraulic'">
-          <div #paletteDiv class="gojs-palette"></div>
-          <div class="palette-hint">Drag a P&amp;ID symbol onto the hydraulic canvas</div>
+        <div class="gojs-palette-shell" *ngIf="domain === 'hydraulic'"
+             style="display:flex;flex-direction:column;height:calc(100% - 68px);min-height:420px;">
+          <div #paletteDiv class="gojs-palette"
+               style="width:100%;flex:1;min-height:390px;border:1px solid var(--nps-border);border-radius:6px;background:#fff;overflow:hidden;"></div>
+          <div class="palette-hint"
+               style="padding:7px 4px 0;color:#718198;font-size:7px;text-align:center;line-height:1.4;">
+            Drag a P&amp;ID symbol onto the hydraulic canvas
+          </div>
         </div>
 
         <div class="palette-grid" *ngIf="domain !== 'hydraulic'">
