@@ -1,6 +1,6 @@
 import * as go from 'gojs';
-import { HYDRAULIC_COMPONENT_CLASSES } from '../../core/knowledge-base/hydraulic-knowledge-base';
 import { installHydraulicPidTemplates } from './hydraulic-pid-symbols';
+import { installValidatedHydraulicTemplates } from './validated-hydraulic-symbols';
 
 interface PaletteNodeData {
   key: string;
@@ -11,33 +11,36 @@ interface PaletteNodeData {
   groupLabel: string;
 }
 
-const DEFAULT_NAMES: Record<string, string> = {
-  'Pump': 'NEW-PO',
-  'Vertical Pump': 'NEW-VP',
-  'Motorized Valve': 'NEW-MOV',
-  'Manual Valve': 'NEW-HV',
-  'Check Valve': 'NEW-CV',
-  'Control Valve': 'NEW-CVLV',
-  'Relief Valve': 'NEW-RV',
-  'Heat Exchanger': 'NEW-HX',
-  'Filter / Strainer': 'NEW-FLT',
-  'Tank / Vessel': 'NEW-TANK',
-  'Pool / Source': 'NEW-POOL',
-  'Instrument': 'NEW-INST',
-  'Flow Element': 'NEW-FE',
-  'Pipe Junction': 'NEW-JCT',
-  'Off-page Connector': 'NEW-OFFPAGE',
-  'Boundary': 'NEW-BND'
-};
+/**
+ * Palette validated by the user from the P&ID symbol review sheet.
+ * Hydraulic Link and Test Link are currently represented as draggable visual
+ * tools; they can later be promoted to dedicated link-tool modes.
+ */
+const ITEMS: PaletteNodeData[] = [
+  { key: 'tpl-motor-pump', name: 'NEW-PO', type: 'Motor Pump', category: 'Motor Pump', kbClass: 'HYDRAULIC.MOTOR_PUMP', groupLabel: 'Equipment' },
+  { key: 'tpl-reheater', name: 'NEW-RH', type: 'Reheater', category: 'Reheater', kbClass: 'HYDRAULIC.REHEATER', groupLabel: 'Equipment' },
+  { key: 'tpl-reservoir', name: 'NEW-RES', type: 'Reservoir', category: 'Reservoir', kbClass: 'HYDRAULIC.RESERVOIR', groupLabel: 'Equipment' },
+  { key: 'tpl-tank', name: 'NEW-TANK', type: 'Tank', category: 'Tank', kbClass: 'HYDRAULIC.TANK', groupLabel: 'Equipment' },
+  { key: 'tpl-filter', name: 'NEW-FLT', type: 'Filter', category: 'Filter', kbClass: 'HYDRAULIC.FILTER', groupLabel: 'Equipment' },
+  { key: 'tpl-diaphragm', name: 'NEW-DIA', type: 'Diaphragm', category: 'Diaphragm', kbClass: 'HYDRAULIC.DIAPHRAGM', groupLabel: 'Equipment' },
 
-const ITEMS: PaletteNodeData[] = HYDRAULIC_COMPONENT_CLASSES.map((component, index) => ({
-  key: `tpl-${index}-${component.type.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
-  name: DEFAULT_NAMES[component.type] ?? `NEW-${index + 1}`,
-  type: component.type,
-  category: component.type,
-  kbClass: component.id,
-  groupLabel: component.group
-}));
+  { key: 'tpl-check-valve', name: 'NEW-CV', type: 'Check Valve', category: 'Check Valve', kbClass: 'HYDRAULIC.CHECK_VALVE', groupLabel: 'Valves' },
+  { key: 'tpl-manual-valve', name: 'NEW-HV', type: 'Manual Valve', category: 'Manual Valve', kbClass: 'HYDRAULIC.MANUAL_VALVE', groupLabel: 'Valves' },
+  { key: 'tpl-motorized-valve', name: 'NEW-MOV', type: 'Motorized Valve', category: 'Motorized Valve', kbClass: 'HYDRAULIC.MOTORIZED_VALVE', groupLabel: 'Valves' },
+  { key: 'tpl-relief-valve', name: 'NEW-RV', type: 'Relief Valve', category: 'Relief Valve', kbClass: 'HYDRAULIC.RELIEF_VALVE', groupLabel: 'Valves' },
+  { key: 'tpl-kd', name: 'NEW-KD', type: 'KD', category: 'KD', kbClass: 'HYDRAULIC.KD', groupLabel: 'Valves' },
+  { key: 'tpl-fip', name: 'NEW-FIP', type: 'FIP', category: 'FIP', kbClass: 'HYDRAULIC.FIP', groupLabel: 'Instrumentation' },
+
+  { key: 'tpl-source', name: 'NEW-SOURCE', type: 'Source', category: 'Source', kbClass: 'HYDRAULIC.SOURCE', groupLabel: 'Interfaces' },
+  { key: 'tpl-transfer', name: 'NEW-TRANSFER', type: 'Transfer', category: 'Transfer', kbClass: 'HYDRAULIC.TRANSFER', groupLabel: 'Interfaces' },
+  { key: 'tpl-tester', name: 'NEW-TEST', type: 'Tester', category: 'Tester', kbClass: 'HYDRAULIC.TESTER', groupLabel: 'Interfaces' },
+  { key: 'tpl-hydraulic-link', name: 'HYD-LINK', type: 'Hydraulic Link', category: 'Hydraulic Link', kbClass: 'HYDRAULIC.LINK', groupLabel: 'Connections' },
+  { key: 'tpl-test-link', name: 'TEST-LINK', type: 'Test Link', category: 'Test Link', kbClass: 'HYDRAULIC.TEST_LINK', groupLabel: 'Connections' },
+
+  { key: 'tpl-ic', name: 'I&C-SUPPORT', type: 'I&C', category: 'I&C', kbClass: 'SUPPORT.IC', groupLabel: 'Support' },
+  { key: 'tpl-electrical-panel', name: 'ELEC-PANEL', type: 'Electrical Supply Panel', category: 'Electrical Supply Panel', kbClass: 'SUPPORT.ELECTRICAL_SUPPLY_PANEL', groupLabel: 'Support' },
+  { key: 'tpl-maintenance', name: 'MAINT', type: 'Maintenance', category: 'Maintenance', kbClass: 'SUPPORT.MAINTENANCE', groupLabel: 'Support' }
+];
 
 export function createHydraulicPalette(host: HTMLDivElement): go.Palette {
   const $ = go.GraphObject.make;
@@ -45,15 +48,15 @@ export function createHydraulicPalette(host: HTMLDivElement): go.Palette {
   const palette = $(go.Palette, host, {
     contentAlignment: go.Spot.TopLeft,
     padding: new go.Margin(8, 5, 8, 5),
-    initialScale: 0.92,
+    initialScale: 0.9,
     layout: $(go.GridLayout, {
       wrappingColumn: 2,
       spacing: new go.Size(6, 9),
-      cellSize: new go.Size(102, 92),
+      cellSize: new go.Size(108, 94),
       alignment: go.GridAlignment.Position,
       sorting: go.GridSorting.Ascending,
       comparer: (a: go.Part, b: go.Part) => {
-        const order = ['Equipment', 'Valves', 'Instrumentation', 'Interfaces'];
+        const order = ['Equipment', 'Valves', 'Instrumentation', 'Interfaces', 'Connections', 'Support'];
         const ga = order.indexOf(a.data?.groupLabel ?? '');
         const gb = order.indexOf(b.data?.groupLabel ?? '');
         if (ga !== gb) return ga - gb;
@@ -62,7 +65,10 @@ export function createHydraulicPalette(host: HTMLDivElement): go.Palette {
     })
   });
 
-  installHydraulicPidTemplates(palette, { palette: true, accent: '#2563eb' });
+  // Legacy templates remain available for existing models; validated templates
+  // are installed afterwards so shared categories use the approved graphics.
+  installHydraulicPidTemplates(palette, { palette: true, accent: '#1d4ed8' });
+  installValidatedHydraulicTemplates(palette, { palette: true, accent: '#1d4ed8' });
 
   const model = new go.GraphLinksModel(ITEMS);
   model.copiesKey = false;
