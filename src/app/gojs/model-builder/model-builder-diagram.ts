@@ -1,6 +1,7 @@
 import * as go from 'gojs';
 import { installHydraulicPidTemplates } from './hydraulic-pid-symbols';
 import { installValidatedHydraulicTemplates } from './validated-hydraulic-symbols';
+import { installApprovedPidSymbols } from './approved-pid-symbols';
 
 export type ModelDomain = 'hydraulic' | 'electrical' | 'ic' | 'hvac';
 export type HydraulicSystemId = 'PTR' | 'RRI' | 'SEC';
@@ -172,10 +173,12 @@ export function createModelBuilderDiagram(
   );
 
   if (domain === 'hydraulic') {
-    // Keep legacy templates for backward compatibility, then install the
-    // validated legend so shared categories use the newly approved graphics.
     installHydraulicPidTemplates(diagram, { accent: sample.accent });
     installValidatedHydraulicTemplates(diagram, { accent: sample.accent });
+
+    // Approved SVG-backed symbols are installed last. They replace only the
+    // categories that have passed the user's one-by-one visual validation.
+    installApprovedPidSymbols(diagram);
   }
 
   diagram.nodeTemplate = $(go.Node, 'Auto',
