@@ -31,7 +31,13 @@
           <button type="button" class="icon-button">+</button>
         </div>
         <div class="search-box">⌕ Search components</div>
-        <div class="palette-grid">
+
+        <div class="gojs-palette-shell" *ngIf="domain === 'hydraulic'">
+          <div #paletteDiv class="gojs-palette"></div>
+          <div class="palette-hint">Drag a P&amp;ID symbol onto the hydraulic canvas</div>
+        </div>
+
+        <div class="palette-grid" *ngIf="domain !== 'hydraulic'">
           <button *ngFor="let item of palette" type="button" class="palette-item">
             <span class="palette-symbol">{{ item.symbol }}</span>
             <span>{{ item.label }}</span>
