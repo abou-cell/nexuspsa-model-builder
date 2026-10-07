@@ -9,6 +9,7 @@ interface DomainNode {
   name: string;
   type: string;
   loc: string;
+  angle?: number;
 }
 
 interface DomainLink {
@@ -28,12 +29,12 @@ const hydraulicSamples: Record<HydraulicSystemId, DomainSample> = {
   PTR: {
     accent: '#2563eb',
     nodes: [
-      { key: 1, name: 'PTR001PO', type: 'Pump', loc: '150 150' },
-      { key: 2, name: 'PTR003VB', type: 'Check Valve', loc: '305 150' },
-      { key: 3, name: 'PTR004VB', type: 'Motorized Valve', loc: '455 150' },
-      { key: 4, name: 'PTR006EX', type: 'Heat Exchanger', loc: '625 150' },
-      { key: 5, name: 'SFP', type: 'Pool / Source', loc: '150 325' },
-      { key: 6, name: 'PTR-FE', type: 'Flow Element', loc: '455 290' }
+      { key: 1, name: 'PTR001PO', type: 'Pump', loc: '150 145' },
+      { key: 2, name: 'PTR003VB', type: 'Check Valve', loc: '275 145' },
+      { key: 3, name: 'PTR004VB', type: 'Motorized Valve', loc: '395 145' },
+      { key: 4, name: 'PTR006EX', type: 'Heat Exchanger', loc: '545 145' },
+      { key: 5, name: 'SFP', type: 'Pool / Source', loc: '150 300' },
+      { key: 6, name: 'PTR-FE', type: 'Flow Element', loc: '395 270' }
     ],
     links: [
       { from: 5, to: 1, fromPort: 'OUT', toPort: 'IN' },
@@ -45,13 +46,13 @@ const hydraulicSamples: Record<HydraulicSystemId, DomainSample> = {
   RRI: {
     accent: '#2563eb',
     nodes: [
-      { key: 1, name: 'RRI009VB', type: 'Manual Valve', loc: '105 155' },
-      { key: 2, name: 'RRI001PO', type: 'Pump', loc: '250 155' },
-      { key: 3, name: 'RRI010VB', type: 'Motorized Valve', loc: '405 155' },
-      { key: 4, name: 'RRI001EX', type: 'Heat Exchanger', loc: '575 155' },
-      { key: 5, name: 'RRI-SOURCE', type: 'Tank / Vessel', loc: '105 325' },
-      { key: 6, name: 'PTR-HX', type: 'Off-page Connector', loc: '650 325' },
-      { key: 7, name: 'RRI-INST', type: 'Instrument', loc: '405 300' }
+      { key: 1, name: 'RRI009VB', type: 'Manual Valve', loc: '105 150' },
+      { key: 2, name: 'RRI001PO', type: 'Pump', loc: '230 150' },
+      { key: 3, name: 'RRI010VB', type: 'Motorized Valve', loc: '355 150' },
+      { key: 4, name: 'RRI001EX', type: 'Heat Exchanger', loc: '505 150' },
+      { key: 5, name: 'RRI-SOURCE', type: 'Tank / Vessel', loc: '105 300' },
+      { key: 6, name: 'PTR', type: 'Off-page Connector', loc: '635 300' },
+      { key: 7, name: 'RRI-INST', type: 'Instrument', loc: '355 275' }
     ],
     links: [
       { from: 5, to: 1, fromPort: 'OUT', toPort: 'IN' },
@@ -64,13 +65,13 @@ const hydraulicSamples: Record<HydraulicSystemId, DomainSample> = {
   SEC: {
     accent: '#2563eb',
     nodes: [
-      { key: 1, name: 'SEC001PO', type: 'Vertical Pump', loc: '145 155' },
-      { key: 2, name: 'SEC003VB', type: 'Check Valve', loc: '285 155' },
-      { key: 3, name: 'SEC005VB', type: 'Motorized Valve', loc: '430 155' },
-      { key: 4, name: 'SEC001EX', type: 'Heat Exchanger', loc: '585 155' },
-      { key: 5, name: 'ULTIMATE-HS', type: 'Pool / Source', loc: '145 325' },
-      { key: 6, name: 'RRI-HX', type: 'Off-page Connector', loc: '665 325' },
-      { key: 7, name: 'SEC-FLT', type: 'Filter / Strainer', loc: '430 320' }
+      { key: 1, name: 'SEC001PO', type: 'Vertical Pump', loc: '145 150' },
+      { key: 2, name: 'SEC003VB', type: 'Check Valve', loc: '265 150' },
+      { key: 3, name: 'SEC005VB', type: 'Motorized Valve', loc: '385 150' },
+      { key: 4, name: 'SEC001EX', type: 'Heat Exchanger', loc: '535 150' },
+      { key: 5, name: 'ULTIMATE-HS', type: 'Pool / Source', loc: '145 305' },
+      { key: 6, name: 'RRI', type: 'Off-page Connector', loc: '650 305' },
+      { key: 7, name: 'SEC-FLT', type: 'Filter / Strainer', loc: '385 290' }
     ],
     links: [
       { from: 5, to: 1, fromPort: 'OUT', toPort: 'IN' },
@@ -138,16 +139,36 @@ export function createModelBuilderDiagram(
   const diagram = $(go.Diagram, host, {
     'undoManager.isEnabled': true,
     allowDrop: true,
+    allowSelect: true,
+    allowZoom: true,
+    maxSelectionCount: Infinity,
+    minScale: 0.25,
+    maxScale: 4,
+    initialScale: 1,
     padding: 34,
     grid: $(go.Panel, 'Grid',
-      $(go.Shape, 'LineH', { stroke: '#edf2f7', strokeWidth: 1 }),
-      $(go.Shape, 'LineV', { stroke: '#edf2f7', strokeWidth: 1 })
+      { gridCellSize: new go.Size(10, 10), visible: true },
+      $(go.Shape, 'LineH', { stroke: '#edf2f7', strokeWidth: 0.8 }),
+      $(go.Shape, 'LineV', { stroke: '#edf2f7', strokeWidth: 0.8 })
     ),
     'draggingTool.isGridSnapEnabled': true,
     'resizingTool.isGridSnapEnabled': true,
     'linkingTool.isUnconnectedLinkValid': false,
     'relinkingTool.isUnconnectedLinkValid': false
   });
+
+  diagram.toolManager.mouseWheelBehavior = go.WheelMode.Zoom;
+  diagram.toolManager.dragSelectingTool.isEnabled = true;
+  diagram.toolManager.dragSelectingTool.isPartialInclusion = true;
+  diagram.toolManager.dragSelectingTool.box = $(go.Part,
+    { layerName: 'Tool' },
+    $(go.Shape, {
+      name: 'SHAPE',
+      fill: 'rgba(37,99,235,0.08)',
+      stroke: '#2563eb',
+      strokeWidth: 1
+    })
+  );
 
   if (domain === 'hydraulic') {
     installHydraulicPidTemplates(diagram, { accent: sample.accent });
@@ -199,7 +220,7 @@ export function createModelBuilderDiagram(
     },
     $(go.Shape, {
       stroke: domain === 'hydraulic' ? '#2563eb' : '#64748b',
-      strokeWidth: domain === 'hydraulic' ? 1.7 : 1.5
+      strokeWidth: domain === 'hydraulic' ? 1.35 : 1.5
     }),
     $(go.Shape, {
       toArrow: domain === 'hydraulic' ? '' : 'Standard',
@@ -210,7 +231,7 @@ export function createModelBuilderDiagram(
   );
 
   const nodeData = sample.nodes.map(node => domain === 'hydraulic'
-    ? { ...node, category: node.type }
+    ? { ...node, category: node.type, angle: node.angle ?? 0 }
     : node
   );
 
