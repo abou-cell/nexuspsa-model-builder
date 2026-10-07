@@ -4,16 +4,27 @@ export interface ApprovedPidSymbolOptions {
   palette?: boolean;
 }
 
+interface PortSpec {
+  id: string;
+  spot: go.Spot;
+  from: boolean;
+  to: boolean;
+  stroke?: string;
+}
+
+interface PictureSymbolSpec {
+  category: string;
+  source: string;
+  width: number;
+  height: number;
+  rotatable?: boolean;
+  ports: PortSpec[];
+}
+
 /**
- * Approved P&ID symbols.
- *
- * Workflow:
- * 1. validate the SVG master outside GoJS;
- * 2. render that exact SVG in GoJS as a Picture;
- * 3. overlay invisible ports for editor interactions.
- *
- * This avoids proportional drift caused by composing a symbol from multiple
- * independently stretched GoJS primitives.
+ * Approved P&ID symbol layer.
+ * Every validated component is drawn once as an SVG master and rendered in
+ * GoJS as a Picture with ImageStretch.Uniform. GoJS only adds interaction ports.
  */
 export function installApprovedPidSymbols(
   target: go.Diagram | go.Palette,
@@ -22,6 +33,10 @@ export function installApprovedPidSymbols(
   const $ = go.GraphObject.make;
   const palette = options.palette ?? false;
   const k = palette ? 0.9 : 1;
+  const hydraulic = '#1647ff';
+  const electrical = '#0f172a';
+  const control = '#7c3aed';
+  const gray = '#334155';
 
   const locationBinding = new go.Binding('location', 'loc', go.Point.parse)
     .makeTwoWay(go.Point.stringify);
@@ -29,44 +44,22 @@ export function installApprovedPidSymbols(
 
   const setPortsVisible = (node: go.Node | null, visible: boolean): void => {
     if (!node || palette) return;
-    node.ports.each(portObject => {
-      portObject.opacity = visible ? 1 : 0;
-    });
+    node.ports.each(p => { p.opacity = visible ? 1 : 0; });
   };
 
-  const nodeBehavior = (rotatable: boolean) => ({
-    locationSpot: go.Spot.Center,
-    selectionAdorned: true,
-    resizable: false,
-    rotatable: !palette && rotatable,
-    cursor: palette ? 'grab' : 'move',
-    selectionChanged: (part: go.Part) => setPortsVisible(part as go.Node, part.isSelected),
-    mouseEnter: (_e: go.InputEvent, obj: go.GraphObject) => setPortsVisible(obj.part as go.Node, true),
-    mouseLeave: (_e: go.InputEvent, obj: go.GraphObject) => {
-      const node = obj.part as go.Node;
-      setPortsVisible(node, node.isSelected);
-    }
-  });
-
-  const port = (
-    id: string,
-    spot: go.Spot,
-    from: boolean,
-    to: boolean,
-    stroke: string
-  ): go.Shape => $(go.Shape, 'Circle', {
-    alignment: spot,
+  const port = (spec: PortSpec): go.Shape => $(go.Shape, 'Circle', {
+    alignment: spec.spot,
     width: 6 * k,
     height: 6 * k,
     fill: '#ffffff',
-    stroke,
+    stroke: spec.stroke ?? hydraulic,
     strokeWidth: 1.1,
     opacity: 0,
-    portId: id,
-    fromLinkable: !palette && from,
-    toLinkable: !palette && to,
-    fromSpot: spot,
-    toSpot: spot,
+    portId: spec.id,
+    fromLinkable: !palette && spec.from,
+    toLinkable: !palette && spec.to,
+    fromSpot: spec.spot,
+    toSpot: spec.spot,
     cursor: palette ? 'grab' : 'crosshair'
   });
 
@@ -76,56 +69,136 @@ export function installApprovedPidSymbols(
     stroke: '#172033',
     textAlign: 'center',
     editable: !palette,
-    maxSize: new go.Size((palette ? 104 : 126) * k, NaN)
+    maxSize: new go.Size((palette ? 108 : 132) * k, NaN)
   }, palette
     ? new go.Binding('text', 'type')
     : new go.Binding('text', 'name').makeTwoWay());
 
-  // 01 — MOTOR PUMP (validated)
-  target.nodeTemplateMap.add('Motor Pump',
-    $(go.Node, 'Vertical',
-      nodeBehavior(false),
-      locationBinding,
-      $(go.Panel, 'Spot',
-        {
-          width: 100 * k,
-          height: 80 * k
-        },
-        $(go.Picture, './pid/motor-pump.svg', {
-          desiredSize: new go.Size(100 * k, 80 * k),
-          imageStretch: go.ImageStretch.Uniform,
-          imageAlignment: go.Spot.Center
-        }),
-        port('IN', new go.Spot(0, 0.675), false, true, '#1647ff'),
-        port('OUT', new go.Spot(1, 0.675), true, false, '#1647ff'),
-        port('PWR', new go.Spot(0.5, 0.01), false, true, '#0f172a'),
-        port('CTRL', new go.Spot(0.74, 0.18), false, true, '#7c3aed')
-      ),
-      caption()
-    )
-  );
+  const addPictureSymbol = (spec: PictureSymbolSpec): void => {
+    const args: any[] = [
+      go.Node,
+      'Vertical',
+      {
+        locationSpot: go.Spot.Center,
+        selectionAdorned: true,
+        resizable: false,
+        rotatable: !palette && (spec.rotatable ?? false),
+        cursor: palette ? 'grab' : 'move',
+        selectionChanged: (part: go.Part) => setPortsVisible(part as go.Node, part.isSelected),
+        mouseEnter: (_e: go.InputEvent, obj: go.GraphObject) => setPortsVisible(obj.part as go.Node, true),
+        mouseLeave: (_e: go.InputEvent, obj: go.GraphObject) => {
+          const node = obj.part as go.Node;
+          setPortsVisible(node, node.isSelected);
+        }
+      },
+      locationBinding
+    ];
 
-  // 02 — CHECK VALVE (candidate for validation)
-  // Exact SVG silhouette traced from the user's reference legend.
-  target.nodeTemplateMap.add('Check Valve',
-    $(go.Node, 'Vertical',
-      nodeBehavior(true),
-      locationBinding,
-      angleBinding,
+    if (spec.rotatable) args.push(angleBinding);
+
+    args.push(
       $(go.Panel, 'Spot',
-        {
-          width: 100 * k,
-          height: 60 * k
-        },
-        $(go.Picture, './pid/check-valve.svg', {
-          desiredSize: new go.Size(100 * k, 60 * k),
+        { width: spec.width * k, height: spec.height * k },
+        $(go.Picture, spec.source, {
+          desiredSize: new go.Size(spec.width * k, spec.height * k),
           imageStretch: go.ImageStretch.Uniform,
           imageAlignment: go.Spot.Center
         }),
-        port('IN', new go.Spot(0.06, 0.52), false, true, '#1647ff'),
-        port('OUT', new go.Spot(0.94, 0.52), true, false, '#1647ff')
+        ...spec.ports.map(port)
       ),
       caption()
-    )
-  );
+    );
+
+    target.nodeTemplateMap.add(spec.category, $(...args));
+  };
+
+  const inlinePorts: PortSpec[] = [
+    { id: 'IN', spot: go.Spot.Left, from: false, to: true },
+    { id: 'OUT', spot: go.Spot.Right, from: true, to: false }
+  ];
+
+  const specs: PictureSymbolSpec[] = [
+    {
+      category: 'Motor Pump', source: './pid/motor-pump.svg', width: 100, height: 80,
+      ports: [
+        { id: 'IN', spot: new go.Spot(0, 0.675), from: false, to: true },
+        { id: 'OUT', spot: new go.Spot(1, 0.675), from: true, to: false },
+        { id: 'PWR', spot: new go.Spot(0.5, 0.01), from: false, to: true, stroke: electrical },
+        { id: 'CTRL', spot: new go.Spot(0.74, 0.18), from: false, to: true, stroke: control }
+      ]
+    },
+    { category: 'Check Valve', source: './pid/check-valve.svg', width: 100, height: 60, rotatable: true, ports: inlinePorts },
+    { category: 'Reheater', source: './pid/reheater.svg', width: 110, height: 60, rotatable: true, ports: inlinePorts },
+    { category: 'KD', source: './pid/kd.svg', width: 100, height: 40, rotatable: true, ports: inlinePorts },
+    {
+      category: 'Relief Valve', source: './pid/relief-valve.svg', width: 70, height: 100, rotatable: true,
+      ports: [
+        { id: 'IN', spot: new go.Spot(0, 0.55), from: false, to: true },
+        { id: 'OUT', spot: new go.Spot(0.71, 1), from: true, to: false }
+      ]
+    },
+    {
+      category: 'Reservoir', source: './pid/reservoir.svg', width: 110, height: 70,
+      ports: [
+        { id: 'IN', spot: go.Spot.Left, from: false, to: true },
+        { id: 'OUT', spot: go.Spot.Right, from: true, to: false }
+      ]
+    },
+    { category: 'Diaphragm', source: './pid/diaphragm.svg', width: 110, height: 50, rotatable: true, ports: inlinePorts },
+    { category: 'Manual Valve', source: './pid/manual-valve.svg', width: 90, height: 80, rotatable: true, ports: inlinePorts },
+    { category: 'Filter', source: './pid/filter.svg', width: 90, height: 70, rotatable: true, ports: inlinePorts },
+    {
+      category: 'FIP', source: './pid/fip.svg', width: 70, height: 90, rotatable: true,
+      ports: [
+        { id: 'PROC', spot: go.Spot.Bottom, from: false, to: true },
+        { id: 'SIG', spot: new go.Spot(0.78, 0.61), from: true, to: false, stroke: control }
+      ]
+    },
+    { category: 'Transfer', source: './pid/transfer.svg', width: 110, height: 50, rotatable: true, ports: [{ id: 'BND', spot: go.Spot.Right, from: true, to: true }] },
+    { category: 'Source', source: './pid/source.svg', width: 90, height: 60, ports: [{ id: 'OUT', spot: go.Spot.Right, from: true, to: false }] },
+    {
+      category: 'Motorized Valve', source: './pid/motorized-valve.svg', width: 90, height: 90, rotatable: true,
+      ports: [
+        { id: 'IN', spot: new go.Spot(0, 0.73), from: false, to: true },
+        { id: 'OUT', spot: new go.Spot(1, 0.73), from: true, to: false },
+        { id: 'PWR', spot: new go.Spot(0.42, 0), from: false, to: true, stroke: electrical },
+        { id: 'CTRL', spot: new go.Spot(0.58, 0), from: false, to: true, stroke: control }
+      ]
+    },
+    { category: 'Tester', source: './pid/tester.svg', width: 80, height: 60, ports: [{ id: 'TEST', spot: go.Spot.Bottom, from: true, to: true, stroke: gray }] },
+    {
+      category: 'I&C', source: './pid/ic.svg', width: 100, height: 80,
+      ports: [
+        { id: 'SIG_IN', spot: go.Spot.Left, from: false, to: true, stroke: control },
+        { id: 'SIG_OUT', spot: go.Spot.Right, from: true, to: false, stroke: control },
+        { id: 'SENSOR_A', spot: new go.Spot(0.32, 0), from: false, to: true, stroke: control },
+        { id: 'SENSOR_B', spot: new go.Spot(0.68, 0), from: false, to: true, stroke: control }
+      ]
+    },
+    { category: 'Electrical Supply Panel', source: './pid/electrical-supply-panel.svg', width: 90, height: 80, ports: [{ id: 'PWR', spot: go.Spot.Right, from: true, to: false, stroke: electrical }] },
+    { category: 'Maintenance', source: './pid/maintenance.svg', width: 90, height: 80, ports: [{ id: 'REF', spot: go.Spot.Right, from: true, to: true, stroke: gray }] },
+    {
+      category: 'Tank', source: './pid/tank.svg', width: 80, height: 110,
+      ports: [
+        { id: 'IN', spot: go.Spot.Top, from: false, to: true },
+        { id: 'OUT', spot: go.Spot.Bottom, from: true, to: false }
+      ]
+    },
+    {
+      category: 'Hydraulic Link', source: './pid/hydraulic-link.svg', width: 120, height: 20, rotatable: true,
+      ports: [
+        { id: 'A', spot: go.Spot.Left, from: true, to: true },
+        { id: 'B', spot: go.Spot.Right, from: true, to: true }
+      ]
+    },
+    {
+      category: 'Test Link', source: './pid/test-link.svg', width: 120, height: 20, rotatable: true,
+      ports: [
+        { id: 'A', spot: go.Spot.Left, from: true, to: true, stroke: gray },
+        { id: 'B', spot: go.Spot.Right, from: true, to: true, stroke: gray }
+      ]
+    }
+  ];
+
+  specs.forEach(addPictureSymbol);
 }
