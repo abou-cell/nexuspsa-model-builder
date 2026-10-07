@@ -1,16 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 60" width="100" height="60">
   <g fill="none" stroke="#1647ff" stroke-width="3.2" stroke-linecap="square" stroke-linejoin="miter">
-    <!-- inlet stub -->
-    <path d="M6 31 H22"/>
-    <!-- upstream vertical pivot support -->
-    <path d="M22 9 V49"/>
-    <!-- swing flap -->
-    <path d="M22 10 L76 43"/>
-    <!-- downstream stop / seat -->
-    <path d="M76 13 V44"/>
-    <!-- outlet stub -->
-    <path d="M76 31 H94"/>
+    <path d="M6 30 H24"/>
+    <path d="M24 10 V50"/>
+    <path d="M24 12 L76 43"/>
+    <path d="M76 10 V50"/>
+    <path d="M76 30 H94"/>
   </g>
-  <!-- pivot marker from the extracted P&ID symbol -->
-  <rect x="18.5" y="6.5" width="7" height="7" fill="#1647ff"/>
+  <circle cx="24" cy="10" r="4.2" fill="#1647ff"/>
 </svg>
