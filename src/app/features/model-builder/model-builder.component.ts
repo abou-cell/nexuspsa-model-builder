@@ -126,6 +126,7 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
   selectedTableKey?: number;
   selectedSystemId = 'PTR';
   inspectorTab: InspectorTab = 'properties';
+  inspectorVisible = true;
 
   private diagram?: go.Diagram;
   private hydraulicPalette?: go.Palette;
@@ -162,6 +163,14 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
 
   get domainLabel(): string {
     return this.domain === 'ic' ? 'I&C' : this.domain.charAt(0).toUpperCase() + this.domain.slice(1);
+  }
+
+  get workspaceLabel(): string {
+    if (this.workspace === 'generation') return 'FT Generation Workspace';
+    if (this.workspace === 'generated-ft') return 'Generated FT Workspace';
+    if (this.workspace === 'knowledge-base') return 'Knowledge Base Workspace';
+    if (this.workspace === 'rules') return 'Rules Workspace';
+    return `${this.domainLabel} Workspace`;
   }
 
   get systems(): EngineeringSystem[] { return SYSTEMS.filter(system => system.domain === this.domain); }
@@ -224,7 +233,16 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
   zoomOut(): void { if (this.diagram) this.diagram.scale /= 1.1; }
   fit(): void { this.diagram?.zoomToFit(); }
 
-  setInspectorTab(tab: InspectorTab): void { this.inspectorTab = tab; }
+  setInspectorTab(tab: InspectorTab): void {
+    this.inspectorTab = tab;
+    this.inspectorVisible = true;
+    setTimeout(() => this.diagram?.requestUpdate());
+  }
+
+  toggleInspector(): void {
+    this.inspectorVisible = !this.inspectorVisible;
+    setTimeout(() => this.diagram?.requestUpdate());
+  }
 
   selectSystem(system: EngineeringSystem): void {
     if (this.selectedSystemId === system.id) return;
