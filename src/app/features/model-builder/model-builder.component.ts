@@ -126,7 +126,9 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
   selectedTableKey?: number;
   selectedSystemId = 'PTR';
   inspectorTab: InspectorTab = 'properties';
-  inspectorVisible = true;
+  inspectorVisible = false;
+  zoomPercent = 100;
+  selectionCount = 0;
 
   private diagram?: go.Diagram;
   private hydraulicPalette?: go.Palette;
@@ -229,13 +231,36 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
 
   undo(): void { this.diagram?.commandHandler.undo(); }
   redo(): void { this.diagram?.commandHandler.redo(); }
-  zoomIn(): void { if (this.diagram) this.diagram.scale *= 1.1; }
-  zoomOut(): void { if (this.diagram) this.diagram.scale /= 1.1; }
-  fit(): void { this.diagram?.zoomToFit(); }
+
+  zoomIn(): void { this.changeZoom(1.2); }
+  zoomOut(): void { this.changeZoom(1 / 1.2); }
+
+  fit(): void {
+    if (!this.diagram) return;
+    this.diagram.zoomToFit();
+    this.syncZoomPercent();
+  }
+
+  selectAllComponents(): void {
+    if (!this.diagram) return;
+    const nodes: go.Node[] = [];
+    this.diagram.nodes.each(node => nodes.push(node));
+    this.diagram.selectCollection(nodes);
+    this.selectionCount = this.diagram.selection.count;
+  }
+
+  clearSelection(): void {
+    this.diagram?.clearSelection();
+    this.selectionCount = 0;
+  }
 
   setInspectorTab(tab: InspectorTab): void {
-    this.inspectorTab = tab;
-    this.inspectorVisible = true;
+    if (this.inspectorVisible && this.inspectorTab === tab) {
+      this.inspectorVisible = false;
+    } else {
+      this.inspectorTab = tab;
+      this.inspectorVisible = true;
+    }
     setTimeout(() => this.diagram?.requestUpdate());
   }
 
@@ -260,6 +285,26 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
     this.diagram.centerRect(node.actualBounds);
   }
 
+  private changeZoom(factor: number): void {
+    if (!this.diagram) return;
+    const center = this.diagram.viewportBounds.center;
+    const nextScale = Math.min(
+      this.diagram.maxScale,
+      Math.max(this.diagram.minScale, this.diagram.scale * factor)
+    );
+    this.diagram.scale = nextScale;
+    const viewport = this.diagram.viewportBounds;
+    this.diagram.position = new go.Point(
+      center.x - viewport.width / 2,
+      center.y - viewport.height / 2
+    );
+    this.syncZoomPercent();
+  }
+
+  private syncZoomPercent(): void {
+    this.zoomPercent = this.diagram ? Math.round(this.diagram.scale * 100) : 100;
+  }
+
   private rebuildPalette(): void {
     if (this.hydraulicPalette) {
       this.hydraulicPalette.div = null;
@@ -279,14 +324,21 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
     this.diagram = createModelBuilderDiagram(this.diagramDiv.nativeElement, this.domain, hydraulicSystem);
     this.syncSystemTable();
     this.selectedTableKey = this.systemRows[0]?.key;
+    this.syncZoomPercent();
+    this.selectionCount = 0;
 
     this.diagram.addModelChangedListener(event => {
       if (event.isTransactionFinished) this.syncSystemTable();
     });
 
     this.diagram.addDiagramListener('ChangedSelection', () => {
+      this.selectionCount = this.diagram?.selection.count ?? 0;
       const selected = this.diagram?.selection.first();
       if (selected instanceof go.Node) this.selectedTableKey = Number(selected.data?.key);
+    });
+
+    this.diagram.addDiagramListener('ViewportBoundsChanged', () => {
+      this.syncZoomPercent();
     });
   }
 
