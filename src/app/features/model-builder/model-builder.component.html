@@ -45,14 +45,15 @@
         </div>
 
         <div class="toolbar-spacer"></div>
-        <div class="inspector-actions" role="group" aria-label="Component inspector">
-          <button type="button" class="inspector-action"
+        <div class="inspector-actions" role="group" aria-label="Component inspector"
+             style="display:flex;align-items:center;gap:3px;padding-left:8px;border-left:1px solid var(--nps-border);">
+          <button type="button" class="properties-toggle inspector-action"
                   [class.active]="inspectorVisible && inspectorTab === 'properties'"
                   (click)="setInspectorTab('properties')">▦ Properties</button>
-          <button type="button" class="inspector-action"
+          <button type="button" class="properties-toggle inspector-action"
                   [class.active]="inspectorVisible && inspectorTab === 'failures'"
                   (click)="setInspectorTab('failures')">⚠ Failures</button>
-          <button type="button" class="inspector-action"
+          <button type="button" class="properties-toggle inspector-action"
                   [class.active]="inspectorVisible && inspectorTab === 'rules'"
                   (click)="setInspectorTab('rules')">ƒ Rules</button>
         </div>
