@@ -45,7 +45,17 @@
         </div>
 
         <div class="toolbar-spacer"></div>
-        <button type="button" class="properties-toggle" [class.active]="inspectorVisible" (click)="toggleInspector()">▦ Properties</button>
+        <div class="inspector-actions" role="group" aria-label="Component inspector">
+          <button type="button" class="inspector-action"
+                  [class.active]="inspectorVisible && inspectorTab === 'properties'"
+                  (click)="setInspectorTab('properties')">▦ Properties</button>
+          <button type="button" class="inspector-action"
+                  [class.active]="inspectorVisible && inspectorTab === 'failures'"
+                  (click)="setInspectorTab('failures')">⚠ Failures</button>
+          <button type="button" class="inspector-action"
+                  [class.active]="inspectorVisible && inspectorTab === 'rules'"
+                  (click)="setInspectorTab('rules')">ƒ Rules</button>
+        </div>
         <button type="button" class="validate">✓ Validate</button>
       </div>
 
@@ -102,18 +112,12 @@
     </section>
 
     <aside class="right-panel panel" *ngIf="inspectorVisible">
-      <div class="inspector-tabs">
-        <button type="button" [class.active]="inspectorTab === 'properties'" (click)="setInspectorTab('properties')">Properties</button>
-        <button type="button" [class.active]="inspectorTab === 'failures'" (click)="setInspectorTab('failures')">Failures</button>
-        <button type="button" [class.active]="inspectorTab === 'rules'" (click)="setInspectorTab('rules')">Rules</button>
-      </div>
-
       <div class="properties-panel-header">
         <div>
-          <strong>{{ selectedComponent?.identifier || selectedSystemId }}</strong>
-          <small>{{ selectedComponent?.componentType || 'No component selected' }} · {{ selectedSystemId }}</small>
+          <strong>{{ inspectorTab | titlecase }}</strong>
+          <small>{{ selectedComponent?.identifier || selectedSystemId }} · {{ selectedComponent?.componentType || 'No component selected' }} · {{ selectedSystemId }}</small>
         </div>
-        <button type="button" class="close-inspector" title="Hide Properties" (click)="toggleInspector()">×</button>
+        <button type="button" class="close-inspector" title="Close inspector" (click)="toggleInspector()">×</button>
       </div>
 
       <div class="properties-table-wrap" *ngIf="inspectorTab === 'properties'">
