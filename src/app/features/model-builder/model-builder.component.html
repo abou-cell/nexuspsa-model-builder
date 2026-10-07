@@ -34,19 +34,19 @@
           <button type="button" (click)="redo()" title="Redo">↷</button>
         </div>
         <div class="tool-group">
-          <button type="button" title="Select">⌖</button>
-          <button type="button" title="Connect">⌁</button>
-          <button type="button" title="Delete">⌫</button>
+          <button type="button" (click)="selectAllComponents()" title="Select all components">▣ All</button>
+          <button type="button" (click)="clearSelection()" title="Clear selection">× Sel</button>
+          <button type="button" title="Connect components using P&amp;ID ports">⌁</button>
+          <button type="button" title="Delete selected components">⌫</button>
         </div>
         <div class="tool-group">
-          <button type="button" (click)="zoomOut()">−</button>
-          <button type="button" (click)="fit()">Fit</button>
-          <button type="button" (click)="zoomIn()">+</button>
+          <button type="button" (click)="zoomOut()" title="Zoom out">−</button>
+          <button type="button" (click)="fit()" title="Fit diagram to viewport">Fit</button>
+          <button type="button" (click)="zoomIn()" title="Zoom in">+</button>
         </div>
 
         <div class="toolbar-spacer"></div>
-        <div class="inspector-actions" role="group" aria-label="Component inspector"
-             style="display:flex;align-items:center;gap:3px;padding-left:8px;border-left:1px solid var(--nps-border);">
+        <div class="inspector-actions" role="group" aria-label="Component inspector">
           <button type="button" class="properties-toggle inspector-action"
                   [class.active]="inspectorVisible && inspectorTab === 'properties'"
                   (click)="setInspectorTab('properties')">▦ Properties</button>
@@ -63,7 +63,7 @@
       <div class="editor-main">
         <div class="canvas-stack">
           <div #diagramDiv class="diagram"></div>
-          <div class="canvas-badge">GoJS workspace · P&amp;ID ports · grid snap · orthogonal links · undo/redo</div>
+          <div class="canvas-badge">P&amp;ID workspace · wheel zoom · rubber-band multi-select · normalized symbols · orthogonal pipes</div>
         </div>
 
         <section class="systems-panel">
@@ -105,10 +105,11 @@
       <footer class="editor-statusbar">
         <span>{{ systemRows.length }} components</span>
         <span>{{ selectedSystemId }} system</span>
+        <span>{{ selectionCount }} selected</span>
         <span>0 validation errors</span>
         <span class="spacer"></span>
         <span>Snap: 10 px</span>
-        <span>100%</span>
+        <span>{{ zoomPercent }}%</span>
       </footer>
     </section>
 
