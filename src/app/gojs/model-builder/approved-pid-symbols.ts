@@ -25,6 +25,7 @@ export function installApprovedPidSymbols(
 
   const locationBinding = new go.Binding('location', 'loc', go.Point.parse)
     .makeTwoWay(go.Point.stringify);
+  const angleBinding = new go.Binding('angle', 'angle').makeTwoWay();
 
   const setPortsVisible = (node: go.Node | null, visible: boolean): void => {
     if (!node || palette) return;
@@ -32,6 +33,20 @@ export function installApprovedPidSymbols(
       portObject.opacity = visible ? 1 : 0;
     });
   };
+
+  const nodeBehavior = (rotatable: boolean) => ({
+    locationSpot: go.Spot.Center,
+    selectionAdorned: true,
+    resizable: false,
+    rotatable: !palette && rotatable,
+    cursor: palette ? 'grab' : 'move',
+    selectionChanged: (part: go.Part) => setPortsVisible(part as go.Node, part.isSelected),
+    mouseEnter: (_e: go.InputEvent, obj: go.GraphObject) => setPortsVisible(obj.part as go.Node, true),
+    mouseLeave: (_e: go.InputEvent, obj: go.GraphObject) => {
+      const node = obj.part as go.Node;
+      setPortsVisible(node, node.isSelected);
+    }
+  });
 
   const port = (
     id: string,
@@ -66,21 +81,10 @@ export function installApprovedPidSymbols(
     ? new go.Binding('text', 'type')
     : new go.Binding('text', 'name').makeTwoWay());
 
+  // 01 — MOTOR PUMP (validated)
   target.nodeTemplateMap.add('Motor Pump',
     $(go.Node, 'Vertical',
-      {
-        locationSpot: go.Spot.Center,
-        selectionAdorned: true,
-        resizable: false,
-        rotatable: false,
-        cursor: palette ? 'grab' : 'move',
-        selectionChanged: (part: go.Part) => setPortsVisible(part as go.Node, part.isSelected),
-        mouseEnter: (_e: go.InputEvent, obj: go.GraphObject) => setPortsVisible(obj.part as go.Node, true),
-        mouseLeave: (_e: go.InputEvent, obj: go.GraphObject) => {
-          const node = obj.part as go.Node;
-          setPortsVisible(node, node.isSelected);
-        }
-      },
+      nodeBehavior(false),
       locationBinding,
       $(go.Panel, 'Spot',
         {
@@ -96,6 +100,30 @@ export function installApprovedPidSymbols(
         port('OUT', new go.Spot(1, 0.675), true, false, '#1647ff'),
         port('PWR', new go.Spot(0.5, 0.01), false, true, '#0f172a'),
         port('CTRL', new go.Spot(0.74, 0.18), false, true, '#7c3aed')
+      ),
+      caption()
+    )
+  );
+
+  // 02 — CHECK VALVE (candidate for validation)
+  // Exact SVG silhouette traced from the user's reference legend.
+  target.nodeTemplateMap.add('Check Valve',
+    $(go.Node, 'Vertical',
+      nodeBehavior(true),
+      locationBinding,
+      angleBinding,
+      $(go.Panel, 'Spot',
+        {
+          width: 100 * k,
+          height: 60 * k
+        },
+        $(go.Picture, './pid/check-valve.svg', {
+          desiredSize: new go.Size(100 * k, 60 * k),
+          imageStretch: go.ImageStretch.Uniform,
+          imageAlignment: go.Spot.Center
+        }),
+        port('IN', new go.Spot(0.06, 0.52), false, true, '#1647ff'),
+        port('OUT', new go.Spot(0.94, 0.52), true, false, '#1647ff')
       ),
       caption()
     )
