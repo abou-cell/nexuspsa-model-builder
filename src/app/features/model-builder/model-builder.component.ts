@@ -8,6 +8,7 @@ import {
   HydraulicSystemId,
   ModelDomain
 } from '../../gojs/model-builder/model-builder-diagram';
+import { createHydraulicPalette } from '../../gojs/model-builder/hydraulic-palette';
 
 interface PaletteItem {
   label: string;
@@ -65,7 +66,6 @@ const DOMAIN_PALETTES: Record<ModelDomain, readonly PaletteItem[]> = {
     { label: 'Check Valve', symbol: '▷' },
     { label: 'Heat Exchanger', symbol: '▥' },
     { label: 'Tank / Pool', symbol: '▱' },
-    { label: 'Pipe Junction', symbol: '●' },
     { label: 'Boundary', symbol: '⊣' }
   ],
   electrical: [
@@ -118,6 +118,7 @@ const SYSTEMS: EngineeringSystem[] = [
 })
 export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
   @ViewChild('diagramDiv', { static: true }) diagramDiv!: ElementRef<HTMLDivElement>;
+  @ViewChild('paletteDiv') paletteDiv?: ElementRef<HTMLDivElement>;
 
   domain: ModelDomain = 'hydraulic';
   workspace = 'editor';
@@ -127,6 +128,7 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
   inspectorTab: InspectorTab = 'properties';
 
   private diagram?: go.Diagram;
+  private hydraulicPalette?: go.Palette;
   private readonly subscriptions = new Subscription();
   private viewReady = false;
 
@@ -139,6 +141,7 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
         this.selectedSystemId = this.systems[0]?.id ?? 'PTR';
         this.inspectorTab = 'properties';
         this.rebuildDiagram();
+        setTimeout(() => this.rebuildPalette());
       }
     }));
 
@@ -212,6 +215,7 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.viewReady = true;
     this.rebuildDiagram();
+    setTimeout(() => this.rebuildPalette());
   }
 
   undo(): void { this.diagram?.commandHandler.undo(); }
@@ -236,6 +240,17 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
     if (!node || !this.diagram) return;
     this.diagram.select(node);
     this.diagram.centerRect(node.actualBounds);
+  }
+
+  private rebuildPalette(): void {
+    if (this.hydraulicPalette) {
+      this.hydraulicPalette.div = null;
+      this.hydraulicPalette = undefined;
+    }
+    if (!this.viewReady || this.domain !== 'hydraulic') return;
+    const host = this.paletteDiv?.nativeElement;
+    if (!host) return;
+    this.hydraulicPalette = createHydraulicPalette(host);
   }
 
   private rebuildDiagram(): void {
@@ -320,5 +335,6 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
     if (this.diagram) this.diagram.div = null;
+    if (this.hydraulicPalette) this.hydraulicPalette.div = null;
   }
 }
