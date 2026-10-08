@@ -124,7 +124,7 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
       { id: 'SENSOR_A', spot: new go.Spot(0.25, 0), from: false, to: true, stroke: control },
       { id: 'SENSOR_B', spot: new go.Spot(0.75, 0), from: false, to: true, stroke: control }
     ]},
-    { category: 'Maintenance', source: './pid/maintenance.svg', width: 90, height: 90, ports: [{ id: 'REF', spot: go.Spot.Right, from: true, to: true, stroke: gray }] },
+    { category: 'Maintenance', source: './pid/maintenance.svg?v=4', width: 90, height: 90, ports: [{ id: 'REF', spot: go.Spot.Right, from: true, to: true, stroke: gray }] },
     { category: 'Tank', source: './pid/tank.svg', width: 80, height: 110, ports: [
       { id: 'IN', spot: go.Spot.Top, from: false, to: true },
       { id: 'OUT', spot: go.Spot.Bottom, from: true, to: false }
