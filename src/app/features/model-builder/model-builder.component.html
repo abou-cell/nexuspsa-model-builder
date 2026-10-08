@@ -1,6 +1,6 @@
 <div class="workspace-shell">
   <main class="workspace-grid" [class.inspector-hidden]="!inspectorVisible">
-    <aside class="left-panel panel">
+    <aside class="left-panel panel resizable-library" title="Resize the component library horizontally from the lower-right edge">
       <section class="panel-section component-library-section">
         <div class="panel-heading">
           <span>Component library</span>
@@ -9,8 +9,12 @@
         <div class="search-box">⌕ Search components</div>
 
         <div class="gojs-palette-shell" *ngIf="domain === 'hydraulic'">
+          <div class="palette-table-header">
+            <span>Symbol</span>
+            <span>Component / description</span>
+          </div>
           <div #paletteDiv class="gojs-palette"></div>
-          <div class="palette-hint">Drag a P&amp;ID symbol onto the hydraulic canvas</div>
+          <div class="palette-hint">Drag a row onto the canvas · drag the palette corner left/right to resize</div>
         </div>
 
         <div class="palette-grid" *ngIf="domain !== 'hydraulic'">
