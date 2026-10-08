@@ -129,11 +129,30 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
   inspectorVisible = false;
   zoomPercent = 100;
   selectionCount = 0;
+  paletteWidth = 300;
 
   private diagram?: go.Diagram;
   private hydraulicPalette?: go.Palette;
   private readonly subscriptions = new Subscription();
   private viewReady = false;
+  private paletteResizeStartX = 0;
+  private paletteResizeStartWidth = 300;
+
+  private readonly onPaletteResizeMove = (event: MouseEvent): void => {
+    const maxWidth = Math.min(520, Math.max(320, window.innerWidth * 0.45));
+    const delta = event.clientX - this.paletteResizeStartX;
+    this.paletteWidth = Math.max(240, Math.min(maxWidth, this.paletteResizeStartWidth + delta));
+    this.hydraulicPalette?.requestUpdate();
+    this.diagram?.requestUpdate();
+  };
+
+  private readonly onPaletteResizeEnd = (): void => {
+    document.removeEventListener('mousemove', this.onPaletteResizeMove);
+    document.removeEventListener('mouseup', this.onPaletteResizeEnd);
+    document.body.classList.remove('palette-resizing');
+    this.hydraulicPalette?.requestUpdate();
+    this.diagram?.requestUpdate();
+  };
 
   constructor(private readonly route: ActivatedRoute) {
     this.subscriptions.add(this.route.params.subscribe(params => {
@@ -227,6 +246,15 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
     this.viewReady = true;
     this.rebuildDiagram();
     setTimeout(() => this.rebuildPalette());
+  }
+
+  startPaletteResize(event: MouseEvent): void {
+    event.preventDefault();
+    this.paletteResizeStartX = event.clientX;
+    this.paletteResizeStartWidth = this.paletteWidth;
+    document.addEventListener('mousemove', this.onPaletteResizeMove);
+    document.addEventListener('mouseup', this.onPaletteResizeEnd);
+    document.body.classList.add('palette-resizing');
   }
 
   undo(): void { this.diagram?.commandHandler.undo(); }
@@ -404,6 +432,9 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
+    document.removeEventListener('mousemove', this.onPaletteResizeMove);
+    document.removeEventListener('mouseup', this.onPaletteResizeEnd);
+    document.body.classList.remove('palette-resizing');
     if (this.diagram) this.diagram.div = null;
     if (this.hydraulicPalette) this.hydraulicPalette.div = null;
   }
