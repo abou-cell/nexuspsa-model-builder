@@ -9,8 +9,8 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
   const palette = options.palette ?? false;
 
   // Keep SVG master geometry unchanged. Canvas size remains unchanged while
-  // palette symbols are displayed at exactly 50% of their previous size.
-  const k = palette ? 0.36 : 0.78;
+  // palette symbols are displayed 20% larger than the previous palette size.
+  const k = palette ? 0.432 : 0.78;
 
   const hydraulic = '#1647ff';
   const electrical = '#0f172a';
