@@ -2,9 +2,11 @@ import * as go from 'gojs';
 import { installHydraulicPidTemplates } from './hydraulic-pid-symbols';
 import { installValidatedHydraulicTemplates } from './validated-hydraulic-symbols';
 import { installApprovedPidSymbols } from './approved-pid-symbols';
+import { installElectricalSymbols } from './electrical-symbols';
 
 export type ModelDomain = 'hydraulic' | 'electrical' | 'ic' | 'hvac';
 export type HydraulicSystemId = 'PTR' | 'RRI' | 'SEC';
+export type ElectricalSystemId = 'ELEC-10KV' | 'ELEC-LV' | 'ELEC-DC';
 
 interface DomainNode {
   key: number;
@@ -85,21 +87,70 @@ const hydraulicSamples: Record<HydraulicSystemId, DomainSample> = {
   }
 };
 
-const samples: Record<Exclude<ModelDomain, 'hydraulic'>, DomainSample> = {
-  electrical: {
-    accent: '#d97706',
+const electricalSamples: Record<ElectricalSystemId, DomainSample> = {
+  'ELEC-10KV': {
+    accent: '#1647ff',
     nodes: [
-      { key: 1, name: 'LLI205JA', type: '6.6 kV Bus', loc: '130 150' },
-      { key: 2, name: 'CB-PTR001', type: 'Breaker', loc: '350 150' },
-      { key: 3, name: 'PTR001MO', type: 'Motor', loc: '565 150' },
-      { key: 4, name: 'DG-A', type: 'Diesel Generator', loc: '130 310' }
+      { key: 1, name: 'ALT-UNIT', type: 'Unit Generator', loc: '110 145' },
+      { key: 2, name: 'CB-LP-01', type: 'LV Breaker', loc: '245 145' },
+      { key: 3, name: 'TS-01', type: 'TS Transformer', loc: '380 145' },
+      { key: 4, name: 'CB-AST-01', type: 'AST Breaker', loc: '515 145' },
+      { key: 5, name: '10KV-A', type: '10 kV Switchboard', loc: '675 145' },
+      { key: 6, name: 'GES-A', type: 'Main GES / GES-M / GES-DEC-A', loc: '380 300' }
     ],
     links: [
-      { from: 4, to: 1 },
-      { from: 1, to: 2 },
-      { from: 2, to: 3 }
+      { from: 1, to: 2, fromPort: 'OUT', toPort: 'IN' },
+      { from: 2, to: 3, fromPort: 'OUT', toPort: 'IN' },
+      { from: 3, to: 4, fromPort: 'OUT', toPort: 'IN' },
+      { from: 4, to: 5, fromPort: 'OUT', toPort: 'IN' },
+      { from: 6, to: 5, fromPort: 'OUT', toPort: 'IN' }
     ]
   },
+  'ELEC-LV': {
+    accent: '#1647ff',
+    nodes: [
+      { key: 1, name: '10KV-B', type: '10 kV Switchboard', loc: '105 145' },
+      { key: 2, name: 'TA-01', type: 'TA Transformer', loc: '250 145' },
+      { key: 3, name: 'CB-LP-02', type: 'LV Breaker', loc: '390 145' },
+      { key: 4, name: '690V-A', type: '690 V Switchboard', loc: '535 145' },
+      { key: 5, name: '400V-A', type: '400 V Switchboard', loc: '680 145' },
+      { key: 6, name: 'GES-M-A', type: 'Main GES / GES-M / GES-DEC-A', loc: '390 305' },
+      { key: 7, name: 'CONV-LV', type: 'Converter', loc: '585 305' }
+    ],
+    links: [
+      { from: 1, to: 2, fromPort: 'OUT', toPort: 'IN' },
+      { from: 2, to: 3, fromPort: 'OUT', toPort: 'IN' },
+      { from: 3, to: 4, fromPort: 'OUT', toPort: 'IN' },
+      { from: 4, to: 5, fromPort: 'OUT', toPort: 'IN' },
+      { from: 6, to: 5, fromPort: 'OUT', toPort: 'IN' },
+      { from: 4, to: 7, fromPort: 'FEEDER_A', toPort: 'IN' }
+    ]
+  },
+  'ELEC-DC': {
+    accent: '#1647ff',
+    nodes: [
+      { key: 1, name: '400V-B', type: '400 V Switchboard', loc: '105 145' },
+      { key: 2, name: 'CHG-220', type: 'Charger / Rectifier', loc: '245 145' },
+      { key: 3, name: 'BAT-220', type: 'Battery', loc: '390 260' },
+      { key: 4, name: '220VDC-A', type: '220 V DC Switchboard', loc: '430 145' },
+      { key: 5, name: 'INV-01', type: 'Inverter', loc: '600 95' },
+      { key: 6, name: 'CONV-125', type: 'Converter', loc: '600 210' },
+      { key: 7, name: '125VDC-A', type: '125 V DC Switchboard', loc: '750 210' },
+      { key: 8, name: 'GES-DEC-B', type: 'GES DEC-B', loc: '245 320' }
+    ],
+    links: [
+      { from: 1, to: 2, fromPort: 'OUT', toPort: 'IN' },
+      { from: 2, to: 4, fromPort: 'OUT', toPort: 'IN' },
+      { from: 3, to: 4, fromPort: 'DC_OUT', toPort: 'IN' },
+      { from: 4, to: 5, fromPort: 'FEEDER_A', toPort: 'IN' },
+      { from: 4, to: 6, fromPort: 'FEEDER_B', toPort: 'IN' },
+      { from: 6, to: 7, fromPort: 'OUT', toPort: 'IN' },
+      { from: 8, to: 1, fromPort: 'OUT', toPort: 'IN' }
+    ]
+  }
+};
+
+const samples: Record<'ic' | 'hvac', DomainSample> = {
   ic: {
     accent: '#7c3aed',
     nodes: [
@@ -133,10 +184,14 @@ const samples: Record<Exclude<ModelDomain, 'hydraulic'>, DomainSample> = {
 export function createModelBuilderDiagram(
   host: HTMLDivElement,
   domain: ModelDomain,
-  hydraulicSystem: HydraulicSystemId = 'PTR'
+  systemId: HydraulicSystemId | ElectricalSystemId = 'PTR'
 ): go.Diagram {
   const $ = go.GraphObject.make;
-  const sample = domain === 'hydraulic' ? hydraulicSamples[hydraulicSystem] : samples[domain];
+  const sample = domain === 'hydraulic'
+    ? hydraulicSamples[(systemId as HydraulicSystemId) in hydraulicSamples ? systemId as HydraulicSystemId : 'PTR']
+    : domain === 'electrical'
+      ? electricalSamples[(systemId as ElectricalSystemId) in electricalSamples ? systemId as ElectricalSystemId : 'ELEC-10KV']
+      : samples[domain];
 
   const diagram = $(go.Diagram, host, {
     'undoManager.isEnabled': true,
@@ -175,10 +230,9 @@ export function createModelBuilderDiagram(
   if (domain === 'hydraulic') {
     installHydraulicPidTemplates(diagram, { accent: sample.accent });
     installValidatedHydraulicTemplates(diagram, { accent: sample.accent });
-
-    // Approved SVG-backed symbols are installed last. They replace only the
-    // categories that have passed the user's one-by-one visual validation.
     installApprovedPidSymbols(diagram);
+  } else if (domain === 'electrical') {
+    installElectricalSymbols(diagram);
   }
 
   diagram.nodeTemplate = $(go.Node, 'Auto',
@@ -215,10 +269,11 @@ export function createModelBuilderDiagram(
     )
   );
 
+  const engineeringLine = domain === 'hydraulic' || domain === 'electrical';
   diagram.linkTemplate = $(go.Link,
     {
       routing: go.Routing.Orthogonal,
-      corner: domain === 'hydraulic' ? 0 : 4,
+      corner: engineeringLine ? 0 : 4,
       relinkableFrom: true,
       relinkableTo: true,
       reshapable: true,
@@ -226,18 +281,18 @@ export function createModelBuilderDiagram(
       adjusting: go.LinkAdjusting.End
     },
     $(go.Shape, {
-      stroke: domain === 'hydraulic' ? '#1d4ed8' : '#64748b',
-      strokeWidth: domain === 'hydraulic' ? 1.35 : 1.5
+      stroke: engineeringLine ? '#1647ff' : '#64748b',
+      strokeWidth: engineeringLine ? 1.4 : 1.5
     }),
     $(go.Shape, {
-      toArrow: domain === 'hydraulic' ? '' : 'Standard',
+      toArrow: engineeringLine ? '' : 'Standard',
       stroke: '#64748b',
-      fill: domain === 'hydraulic' ? null : '#64748b',
+      fill: engineeringLine ? null : '#64748b',
       scale: 0.72
     })
   );
 
-  const nodeData = sample.nodes.map(node => domain === 'hydraulic'
+  const nodeData = sample.nodes.map(node => engineeringLine
     ? { ...node, category: node.type, angle: node.angle ?? 0 }
     : node
   );
