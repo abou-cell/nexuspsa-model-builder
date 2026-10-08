@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="92" height="66" viewBox="0 0 92 66" role="img" aria-label="Power contactor">
+  <g fill="none" stroke="#1647ff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 30h18M70 30h18"/>
+    <rect x="22" y="8" width="48" height="50" rx="4" fill="#eef3ff"/>
+    <circle cx="34" cy="28" r="2.6" fill="#1647ff"/>
+    <circle cx="58" cy="28" r="2.6" fill="#1647ff"/>
+    <path d="M37 27l18-8" stroke-width="3.5"/>
+    <path d="M46 31v8" stroke-dasharray="3 3"/>
+    <rect x="34" y="39" width="24" height="11" rx="5.5" fill="#ffffff" stroke-width="2.2"/>
+  </g>
+  <text x="46" y="47" fill="#0d36c7" font-family="Arial,sans-serif" font-size="7.5" font-weight="700" text-anchor="middle">KM</text>
+</svg>
