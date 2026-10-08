@@ -50,6 +50,10 @@ export function createHydraulicPalette(host: HTMLDivElement): go.Palette {
     contentAlignment: go.Spot.TopLeft,
     padding: new go.Margin(4, 4, 8, 4),
     initialScale: 1,
+    allowHorizontalScroll: false,
+    hasHorizontalScrollbar: false,
+    allowVerticalScroll: true,
+    hasVerticalScrollbar: true,
     layout: $(go.GridLayout, {
       wrappingColumn: 1,
       spacing: new go.Size(0, 3),
@@ -79,21 +83,22 @@ export function createHydraulicPalette(host: HTMLDivElement): go.Palette {
       parameter1: 4
     }),
     $(go.Panel, 'Table', {
-        width: 276,
-        minSize: new go.Size(276, 54),
-        padding: new go.Margin(4, 7, 4, 5),
+        name: 'ROW_TABLE',
+        width: 260,
+        minSize: new go.Size(210, 58),
+        padding: new go.Margin(5, 7, 5, 5),
         defaultAlignment: go.Spot.Left
       },
       $(go.RowColumnDefinition, { column: 0, width: 58 }),
-      $(go.RowColumnDefinition, { column: 1, width: 198 }),
+      $(go.RowColumnDefinition, { column: 1 }),
       $(go.Panel, 'Spot', {
           column: 0,
           width: 54,
-          height: 44,
+          height: 46,
           alignment: go.Spot.Center
         },
         $(go.Picture, {
-            desiredSize: new go.Size(48, 38),
+            desiredSize: new go.Size(50, 40),
             imageStretch: go.ImageStretch.Uniform,
             imageAlignment: go.Spot.Center
           },
@@ -101,13 +106,15 @@ export function createHydraulicPalette(host: HTMLDivElement): go.Palette {
         )
       ),
       $(go.Panel, 'Vertical', {
+          name: 'TEXT_PANEL',
           column: 1,
           alignment: go.Spot.Left,
           defaultAlignment: go.Spot.Left,
           stretch: go.Stretch.Horizontal
         },
         $(go.TextBlock, {
-            font: '700 8px Inter, sans-serif',
+            name: 'TYPE_TEXT',
+            font: '700 8.5px Inter, sans-serif',
             stroke: '#172033',
             maxLines: 1,
             overflow: go.TextOverflow.Ellipsis
@@ -115,9 +122,10 @@ export function createHydraulicPalette(host: HTMLDivElement): go.Palette {
           new go.Binding('text', 'type')
         ),
         $(go.TextBlock, {
+            name: 'DESC_TEXT',
             margin: new go.Margin(3, 0, 0, 0),
-            width: 194,
-            font: '7px Inter, sans-serif',
+            width: 184,
+            font: '7.2px Inter, sans-serif',
             stroke: '#64748b',
             wrap: go.Wrap.Fit,
             maxLines: 2,
@@ -129,9 +137,6 @@ export function createHydraulicPalette(host: HTMLDivElement): go.Palette {
     )
   );
 
-  // The palette is a catalogue view, while the main diagram keeps the full
-  // category-specific P&ID templates.  Register the same catalogue row for
-  // every draggable category so all components align like a table.
   for (const category of new Set(ITEMS.map(item => item.category))) {
     palette.nodeTemplateMap.add(category, rowTemplate.copy());
   }
@@ -139,6 +144,24 @@ export function createHydraulicPalette(host: HTMLDivElement): go.Palette {
   const model = new go.GraphLinksModel(ITEMS);
   model.copiesKey = false;
   palette.model = model;
+
+  const syncRowWidths = (): void => {
+    const viewportWidth = Math.max(220, palette.viewportBounds.width || host.clientWidth);
+    const rowWidth = Math.max(210, viewportWidth - 12);
+    const textWidth = Math.max(130, rowWidth - 76);
+
+    palette.nodes.each(node => {
+      const row = node.findObject('ROW_TABLE');
+      const desc = node.findObject('DESC_TEXT');
+      if (row) row.width = rowWidth;
+      if (desc) desc.width = textWidth;
+    });
+    palette.requestUpdate();
+  };
+
+  palette.addDiagramListener('InitialLayoutCompleted', syncRowWidths);
+  palette.addDiagramListener('ViewportBoundsChanged', syncRowWidths);
+  setTimeout(syncRowWidths);
 
   return palette;
 }
