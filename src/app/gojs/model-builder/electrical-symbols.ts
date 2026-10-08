@@ -1,5 +1,5 @@
 import * as go from 'gojs';
-import { ELECTRICAL_SYMBOLS } from './electrical-symbol-library';
+import { ELECTRICAL_SYMBOLS, ElectricalSymbolDefinition } from './electrical-symbol-library';
 
 interface PortSpec {
   id: string;
@@ -32,19 +32,40 @@ function portsFor(category: string): PortSpec[] {
   ];
 }
 
+/**
+ * GoJS rendering uses fixed display boxes rather than multiplying the source
+ * SVG dimensions. This keeps every equipment family readable and prevents a
+ * large intrinsic SVG/viewBox from producing oversized or clipped nodes.
+ */
+function displaySizeFor(symbol: ElectricalSymbolDefinition, palette: boolean): go.Size {
+  if (palette) {
+    if (/TA Transformer/.test(symbol.category)) return new go.Size(38, 31);
+    if (/Transformer/.test(symbol.category)) return new go.Size(36, 30);
+    if (/GES/.test(symbol.category)) return new go.Size(40, 28);
+    if (/Switchboard/.test(symbol.category)) return new go.Size(38, 27);
+    return new go.Size(36, 26);
+  }
+
+  if (/TA Transformer/.test(symbol.category)) return new go.Size(58, 46);
+  if (/Transformer/.test(symbol.category)) return new go.Size(54, 44);
+  if (/GES/.test(symbol.category)) return new go.Size(64, 42);
+  if (/Unit Generator/.test(symbol.category)) return new go.Size(56, 40);
+  if (/Switchboard/.test(symbol.category)) return new go.Size(58, 40);
+  if (/Battery/.test(symbol.category)) return new go.Size(52, 32);
+  if (/Breaker|Contactor/.test(symbol.category)) return new go.Size(48, 34);
+  return new go.Size(48, 36);
+}
+
 export function installElectricalSymbols(target: go.Diagram | go.Palette, palette = false): void {
   const $ = go.GraphObject.make;
-  // Restored to the readable pre-reduction GoJS scale.
-  // Angular controls the available workspace; GoJS keeps engineering symbols legible.
-  const k = palette ? 0.42 : 0.68;
 
   const makePort = (spec: PortSpec): go.Shape => $(go.Shape, 'Circle', {
     alignment: spec.spot,
-    width: Math.max(4, 6 * k),
-    height: Math.max(4, 6 * k),
+    width: palette ? 3 : 5,
+    height: palette ? 3 : 5,
     fill: '#ffffff',
     stroke: '#1647ff',
-    strokeWidth: 1,
+    strokeWidth: 0.9,
     opacity: 0,
     portId: spec.id,
     fromLinkable: !palette && spec.from,
@@ -55,13 +76,14 @@ export function installElectricalSymbols(target: go.Diagram | go.Palette, palett
   });
 
   for (const symbol of ELECTRICAL_SYMBOLS) {
+    const pictureSize = displaySizeFor(symbol, palette);
     const panel = $(go.Panel, 'Spot', {
-      width: symbol.width * k,
-      height: symbol.height * k
+      width: pictureSize.width,
+      height: pictureSize.height
     });
 
     panel.add($(go.Picture, symbol.source, {
-      desiredSize: new go.Size(symbol.width * k, symbol.height * k),
+      desiredSize: pictureSize,
       imageStretch: go.ImageStretch.Uniform,
       imageAlignment: go.Spot.Center,
       alignment: go.Spot.Center
@@ -81,20 +103,20 @@ export function installElectricalSymbols(target: go.Diagram | go.Palette, palett
         new go.Binding('angle', 'angle').makeTwoWay(),
         panel,
         $(go.TextBlock, {
-            margin: new go.Margin(palette ? 2 : 4, 0, 0, 0),
-            font: `${palette ? 7.2 : 8.2}px Inter, sans-serif`,
+            margin: new go.Margin(palette ? 1 : 3, 0, 0, 0),
+            font: `${palette ? 6.8 : 8}px Inter, sans-serif`,
             stroke: '#172033',
             textAlign: 'center',
             editable: !palette,
-            maxSize: new go.Size(palette ? 115 : 150, NaN),
+            maxSize: new go.Size(palette ? 112 : 135, NaN),
             wrap: go.Wrap.Fit
           }, palette ? new go.Binding('text', 'type') : new go.Binding('text', 'name').makeTwoWay()),
         $(go.TextBlock, symbol.rating, {
-          margin: new go.Margin(2, 0, 0, 0),
-          font: `${palette ? 6.4 : 7}px Inter, sans-serif`,
+          margin: new go.Margin(1, 0, 0, 0),
+          font: `${palette ? 5.8 : 6.5}px Inter, sans-serif`,
           stroke: '#1647ff',
           textAlign: 'center',
-          maxSize: new go.Size(palette ? 120 : 165, NaN),
+          maxSize: new go.Size(palette ? 116 : 145, NaN),
           wrap: go.Wrap.Fit
         })
       )
