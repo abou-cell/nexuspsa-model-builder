@@ -10,16 +10,16 @@
         </div>
         <div class="search-box">⌕ Search components</div>
 
-        <div class="gojs-palette-shell" *ngIf="domain === 'hydraulic'">
+        <div class="gojs-palette-shell" *ngIf="domain === 'hydraulic' || domain === 'electrical'">
           <div class="palette-table-header">
             <span>Symbol</span>
             <span>Component / description</span>
           </div>
           <div #paletteDiv class="gojs-palette" style="overflow:hidden;"></div>
-          <div class="palette-hint">Drag a component row onto the hydraulic canvas</div>
+          <div class="palette-hint">Drag a component row onto the {{ domainLabel | lowercase }} canvas</div>
         </div>
 
-        <div class="palette-grid" *ngIf="domain !== 'hydraulic'">
+        <div class="palette-grid" *ngIf="domain !== 'hydraulic' && domain !== 'electrical'">
           <button *ngFor="let item of palette" type="button" class="palette-item">
             <span class="palette-symbol">{{ item.symbol }}</span>
             <span>{{ item.label }}</span>
@@ -48,7 +48,7 @@
         <div class="tool-group">
           <button type="button" (click)="selectAllComponents()" title="Select all components">▣ All</button>
           <button type="button" (click)="clearSelection()" title="Clear selection">× Sel</button>
-          <button type="button" title="Connect components using P&amp;ID ports">⌁</button>
+          <button type="button" title="Connect components">⌁</button>
           <button type="button" title="Delete selected components">⌫</button>
         </div>
         <div class="tool-group">
@@ -75,7 +75,9 @@
       <div class="editor-main">
         <div class="canvas-stack">
           <div #diagramDiv class="diagram"></div>
-          <div class="canvas-badge">P&amp;ID workspace · wheel zoom · rubber-band multi-select · normalized symbols · orthogonal pipes</div>
+          <div class="canvas-badge" *ngIf="domain === 'hydraulic'">P&amp;ID workspace · wheel zoom · rubber-band multi-select · normalized symbols · orthogonal pipes</div>
+          <div class="canvas-badge" *ngIf="domain === 'electrical'">Electrical single-line workspace · wheel zoom · rubber-band multi-select · vector symbols · orthogonal feeders</div>
+          <div class="canvas-badge" *ngIf="domain !== 'hydraulic' && domain !== 'electrical'">Model workspace · wheel zoom · rubber-band multi-select · orthogonal links</div>
         </div>
 
         <section class="systems-panel">
