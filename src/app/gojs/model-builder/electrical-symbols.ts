@@ -34,15 +34,16 @@ function portsFor(category: string): PortSpec[] {
 
 export function installElectricalSymbols(target: go.Diagram | go.Palette, palette = false): void {
   const $ = go.GraphObject.make;
-  const k = palette ? 0.42 : 0.68;
+  // About 60% smaller than the previous electrical rendering.
+  const k = palette ? 0.17 : 0.27;
 
   const makePort = (spec: PortSpec): go.Shape => $(go.Shape, 'Circle', {
     alignment: spec.spot,
-    width: 6 * k,
-    height: 6 * k,
+    width: Math.max(3, 6 * k),
+    height: Math.max(3, 6 * k),
     fill: '#ffffff',
     stroke: '#1647ff',
-    strokeWidth: 1,
+    strokeWidth: 0.8,
     opacity: 0,
     portId: spec.id,
     fromLinkable: !palette && spec.from,
@@ -60,7 +61,8 @@ export function installElectricalSymbols(target: go.Diagram | go.Palette, palett
     panel.add($(go.Picture, symbol.source, {
       desiredSize: new go.Size(symbol.width * k, symbol.height * k),
       imageStretch: go.ImageStretch.Uniform,
-      imageAlignment: go.Spot.Center
+      imageAlignment: go.Spot.Center,
+      alignment: go.Spot.Center
     }));
     for (const port of portsFor(symbol.category)) panel.add(makePort(port));
 
@@ -76,20 +78,20 @@ export function installElectricalSymbols(target: go.Diagram | go.Palette, palett
         new go.Binding('angle', 'angle').makeTwoWay(),
         panel,
         $(go.TextBlock, {
-            margin: new go.Margin(palette ? 2 : 4, 0, 0, 0),
-            font: `${palette ? 7.2 : 8.2}px Inter, sans-serif`,
+            margin: new go.Margin(palette ? 1 : 3, 0, 0, 0),
+            font: `${palette ? 6.6 : 7.2}px Inter, sans-serif`,
             stroke: '#172033',
             textAlign: 'center',
             editable: !palette,
-            maxSize: new go.Size(palette ? 115 : 150, NaN),
+            maxSize: new go.Size(palette ? 100 : 130, NaN),
             wrap: go.Wrap.Fit
           }, palette ? new go.Binding('text', 'type') : new go.Binding('text', 'name').makeTwoWay()),
         $(go.TextBlock, symbol.rating, {
-          margin: new go.Margin(2, 0, 0, 0),
-          font: `${palette ? 6.4 : 7}px Inter, sans-serif`,
+          margin: new go.Margin(1, 0, 0, 0),
+          font: `${palette ? 5.8 : 6.1}px Inter, sans-serif`,
           stroke: '#1647ff',
           textAlign: 'center',
-          maxSize: new go.Size(palette ? 120 : 165, NaN),
+          maxSize: new go.Size(palette ? 105 : 145, NaN),
           wrap: go.Wrap.Fit
         })
       )
