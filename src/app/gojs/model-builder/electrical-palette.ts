@@ -29,7 +29,7 @@ export function createElectricalPalette(host: HTMLDivElement): go.Palette {
   const $ = go.GraphObject.make;
   const palette = $(go.Palette, host, {
     contentAlignment: go.Spot.TopLeft,
-    padding: new go.Margin(4, 4, 8, 4),
+    padding: new go.Margin(5, 5, 8, 5),
     initialScale: 1,
     allowHorizontalScroll: false,
     hasHorizontalScrollbar: false,
@@ -37,7 +37,7 @@ export function createElectricalPalette(host: HTMLDivElement): go.Palette {
     hasVerticalScrollbar: true,
     layout: $(go.GridLayout, {
       wrappingColumn: 1,
-      spacing: new go.Size(0, 3),
+      spacing: new go.Size(0, 4),
       cellSize: new go.Size(1, 1),
       alignment: go.GridAlignment.Position,
       sorting: go.GridSorting.Ascending,
@@ -56,7 +56,7 @@ export function createElectricalPalette(host: HTMLDivElement): go.Palette {
       selectionAdorned: false,
       copyable: true,
       movable: true,
-      minSize: new go.Size(210, 62)
+      minSize: new go.Size(214, 64)
     },
     $(go.Shape, 'RoundedRectangle', {
       name: 'ROW_BACKGROUND',
@@ -68,24 +68,24 @@ export function createElectricalPalette(host: HTMLDivElement): go.Palette {
     }),
     $(go.Panel, 'Table', {
         name: 'ROW_TABLE',
-        width: 256,
-        height: 62,
-        padding: new go.Margin(4, 7, 4, 5),
+        width: 260,
+        height: 64,
+        padding: new go.Margin(5, 8, 5, 6),
         defaultAlignment: go.Spot.Left
       },
-      $(go.RowColumnDefinition, { column: 0, width: 54 }),
+      $(go.RowColumnDefinition, { column: 0, width: 62 }),
       $(go.RowColumnDefinition, { column: 1 }),
       $(go.Panel, 'Spot', {
           name: 'SYMBOL_CELL',
           column: 0,
-          width: 50,
-          height: 48,
+          width: 58,
+          height: 50,
           alignment: go.Spot.Center
         },
         $(go.Picture, {
             name: 'SYMBOL_PICTURE',
-            desiredSize: new go.Size(36, 32),
-            maxSize: new go.Size(38, 34),
+            desiredSize: new go.Size(46, 40),
+            maxSize: new go.Size(48, 42),
             imageStretch: go.ImageStretch.Uniform,
             imageAlignment: go.Spot.Center,
             alignment: go.Spot.Center
@@ -102,7 +102,7 @@ export function createElectricalPalette(host: HTMLDivElement): go.Palette {
         $(go.TextBlock, {
             name: 'TYPE_TEXT',
             width: 180,
-            font: '700 8.7px Inter, sans-serif',
+            font: '700 9px Inter, sans-serif',
             stroke: '#172033',
             maxLines: 1,
             overflow: go.TextOverflow.Ellipsis
@@ -111,7 +111,7 @@ export function createElectricalPalette(host: HTMLDivElement): go.Palette {
             name: 'RATING_TEXT',
             margin: new go.Margin(2, 0, 0, 0),
             width: 180,
-            font: '700 7px Inter, sans-serif',
+            font: '700 7.2px Inter, sans-serif',
             stroke: '#1647ff',
             maxLines: 1,
             overflow: go.TextOverflow.Ellipsis
@@ -120,7 +120,7 @@ export function createElectricalPalette(host: HTMLDivElement): go.Palette {
             name: 'DESC_TEXT',
             margin: new go.Margin(2, 0, 0, 0),
             width: 180,
-            font: '6.3px Inter, sans-serif',
+            font: '6.6px Inter, sans-serif',
             stroke: '#64748b',
             wrap: go.Wrap.Fit,
             maxLines: 2,
@@ -139,13 +139,13 @@ export function createElectricalPalette(host: HTMLDivElement): go.Palette {
   palette.model = model;
 
   const syncRowWidths = (): void => {
-    const available = Math.max(218, host.clientWidth - 12);
-    const rowWidth = Math.max(210, available);
+    const available = Math.max(226, host.clientWidth - 14);
+    const rowWidth = Math.max(214, available);
     const narrow = rowWidth < 270;
-    const symbolColumn = narrow ? 50 : 54;
-    const textWidth = Math.max(136, rowWidth - symbolColumn - 18);
-    const pictureWidth = narrow ? 34 : 36;
-    const pictureHeight = narrow ? 30 : 32;
+    const symbolColumn = narrow ? 56 : 62;
+    const textWidth = Math.max(138, rowWidth - symbolColumn - 20);
+    const pictureWidth = narrow ? 42 : 46;
+    const pictureHeight = narrow ? 36 : 40;
 
     palette.nodes.each(node => {
       const row = node.findObject('ROW_TABLE');
