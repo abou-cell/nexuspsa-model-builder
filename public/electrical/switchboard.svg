@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="104" height="72" viewBox="0 0 104 72" role="img" aria-label="Electrical switchboard">
+  <g fill="none" stroke="#1647ff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="8" y="5" width="88" height="62" rx="4" fill="#eef3ff"/>
+    <path d="M18 23h68" stroke-width="6"/>
+    <path d="M28 23v16M52 23v16M76 23v16"/>
+    <rect x="22" y="39" width="12" height="11" rx="1" fill="#fff" stroke-width="2"/>
+    <rect x="46" y="39" width="12" height="11" rx="1" fill="#fff" stroke-width="2"/>
+    <rect x="70" y="39" width="12" height="11" rx="1" fill="#fff" stroke-width="2"/>
+    <path d="M28 50v11M52 50v11M76 50v11"/>
+  </g>
+</svg>
