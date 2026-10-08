@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="104" height="72" viewBox="0 0 104 72" role="img" aria-label="10 kV switchboard">
+  <g fill="none" stroke="#1647ff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="8" y="5" width="88" height="62" rx="4" fill="#eef3ff"/>
+    <path d="M18 30h68" stroke-width="6"/>
+    <path d="M28 30v12M52 30v12M76 30v12"/>
+    <rect x="22" y="42" width="12" height="11" rx="1" fill="#fff" stroke-width="2"/>
+    <rect x="46" y="42" width="12" height="11" rx="1" fill="#fff" stroke-width="2"/>
+    <rect x="70" y="42" width="12" height="11" rx="1" fill="#fff" stroke-width="2"/>
+    <path d="M28 53v8M52 53v8M76 53v8"/>
+  </g>
+  <text x="52" y="20" fill="#0d36c7" font-family="Arial,sans-serif" font-size="11" font-weight="700" text-anchor="middle">10 kV</text>
+</svg>
