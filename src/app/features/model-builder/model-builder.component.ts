@@ -5,10 +5,12 @@ import { Subscription } from 'rxjs';
 import * as go from 'gojs';
 import {
   createModelBuilderDiagram,
+  ElectricalSystemId,
   HydraulicSystemId,
   ModelDomain
 } from '../../gojs/model-builder/model-builder-diagram';
 import { createHydraulicPalette } from '../../gojs/model-builder/hydraulic-palette';
+import { createElectricalPalette } from '../../gojs/model-builder/electrical-palette';
 
 interface PaletteItem {
   label: string;
@@ -59,25 +61,8 @@ const DOMAIN_TITLES: Record<ModelDomain, string> = {
 };
 
 const DOMAIN_PALETTES: Record<ModelDomain, readonly PaletteItem[]> = {
-  hydraulic: [
-    { label: 'Pump', symbol: '◉' },
-    { label: 'Motorized Valve', symbol: '⋈' },
-    { label: 'Manual Valve', symbol: '◇' },
-    { label: 'Check Valve', symbol: '▷' },
-    { label: 'Heat Exchanger', symbol: '▥' },
-    { label: 'Tank / Pool', symbol: '▱' },
-    { label: 'Boundary', symbol: '⊣' }
-  ],
-  electrical: [
-    { label: 'Busbar', symbol: '━' },
-    { label: 'Breaker', symbol: '□' },
-    { label: 'Transformer', symbol: '◎' },
-    { label: 'Motor', symbol: 'M' },
-    { label: 'Diesel Generator', symbol: 'G' },
-    { label: 'Battery', symbol: '▥' },
-    { label: 'Inverter', symbol: '⌁' },
-    { label: 'Power Supply', symbol: 'ϟ' }
-  ],
+  hydraulic: [],
+  electrical: [],
   ic: [
     { label: 'Sensor', symbol: '◈' },
     { label: 'Transmitter', symbol: 'T' },
@@ -104,7 +89,9 @@ const SYSTEMS: EngineeringSystem[] = [
   { id: 'PTR', description: 'Spent Fuel Pool cooling and purification system', createdAt: '2026-10-07', creatorId: 'AR-001', domain: 'hydraulic' },
   { id: 'RRI', description: 'Component cooling water system', createdAt: '2026-10-07', creatorId: 'AR-001', domain: 'hydraulic' },
   { id: 'SEC', description: 'Essential service water / ultimate heat sink system', createdAt: '2026-10-07', creatorId: 'AR-001', domain: 'hydraulic' },
-  { id: 'ELEC-A', description: 'Example electrical distribution architecture', createdAt: '2026-10-07', creatorId: 'AR-001', domain: 'electrical' },
+  { id: 'ELEC-10KV', description: 'Main 10 kV generation and distribution architecture', createdAt: '2026-10-08', creatorId: 'AR-001', domain: 'electrical' },
+  { id: 'ELEC-LV', description: '690 V / 400 V essential low-voltage distribution', createdAt: '2026-10-08', creatorId: 'AR-001', domain: 'electrical' },
+  { id: 'ELEC-DC', description: '220 Vdc / 125 Vdc backed power and conversion system', createdAt: '2026-10-08', creatorId: 'AR-001', domain: 'electrical' },
   { id: 'IC-A', description: 'Example control and instrumentation architecture', createdAt: '2026-10-07', creatorId: 'AR-001', domain: 'ic' },
   { id: 'HVAC-A', description: 'Example ventilation architecture', createdAt: '2026-10-07', creatorId: 'AR-001', domain: 'hvac' }
 ];
@@ -132,7 +119,7 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
   paletteWidth = 300;
 
   private diagram?: go.Diagram;
-  private hydraulicPalette?: go.Palette;
+  private componentPalette?: go.Palette;
   private readonly subscriptions = new Subscription();
   private viewReady = false;
   private paletteResizeStartX = 0;
@@ -142,7 +129,7 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
     const maxWidth = Math.min(520, Math.max(320, window.innerWidth * 0.45));
     const delta = event.clientX - this.paletteResizeStartX;
     this.paletteWidth = Math.max(240, Math.min(maxWidth, this.paletteResizeStartWidth + delta));
-    this.hydraulicPalette?.requestUpdate();
+    this.componentPalette?.requestUpdate();
     this.diagram?.requestUpdate();
   };
 
@@ -150,7 +137,7 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
     document.removeEventListener('mousemove', this.onPaletteResizeMove);
     document.removeEventListener('mouseup', this.onPaletteResizeEnd);
     document.body.classList.remove('palette-resizing');
-    this.hydraulicPalette?.requestUpdate();
+    this.componentPalette?.requestUpdate();
     this.diagram?.requestUpdate();
   };
 
@@ -204,11 +191,11 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
     const component = this.selectedComponent;
     if (!component) return [];
     const type = component.componentType.toUpperCase();
-    if (/PUMP|FAN|MOTOR|DIESEL/.test(type)) {
+    if (/PUMP|FAN|MOTOR|DIESEL|GENERATOR|GES/.test(type)) {
       return [
-        { code: 'FTS', name: 'Fail to start', category: 'Demand', enabled: true },
-        { code: 'FTR', name: 'Fail to run', category: 'Mission', enabled: true },
-        { code: 'SS', name: 'Spurious stop', category: 'Spurious', enabled: true }
+        { code: 'FTS', name: 'Fail to start / energize', category: 'Demand', enabled: true },
+        { code: 'FTR', name: 'Fail to run / supply', category: 'Mission', enabled: true },
+        { code: 'SS', name: 'Spurious stop / trip', category: 'Spurious', enabled: true }
       ];
     }
     if (/VALVE|DAMPER|BREAKER/.test(type)) {
@@ -218,10 +205,16 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
         { code: 'FC', name: 'Fail closed', category: 'Position', enabled: true }
       ];
     }
-    if (/HEAT EXCHANGER|FILTER|TRANSFORMER/.test(type)) {
+    if (/HEAT EXCHANGER|FILTER|TRANSFORMER|RECTIFIER|INVERTER|CONVERTER/.test(type)) {
       return [
         { code: 'DEG', name: 'Degraded function', category: 'Performance', enabled: true },
         { code: 'LOF', name: 'Loss of function', category: 'Mission', enabled: true }
+      ];
+    }
+    if (/BATTERY/.test(type)) {
+      return [
+        { code: 'LC', name: 'Loss of capacity', category: 'Performance', enabled: true },
+        { code: 'LOF', name: 'Loss of DC supply', category: 'Mission', enabled: true }
       ];
     }
     return [
@@ -259,7 +252,6 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
 
   undo(): void { this.diagram?.commandHandler.undo(); }
   redo(): void { this.diagram?.commandHandler.redo(); }
-
   zoomIn(): void { this.changeZoom(1.2); }
   zoomOut(): void { this.changeZoom(1 / 1.2); }
 
@@ -316,16 +308,10 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
   private changeZoom(factor: number): void {
     if (!this.diagram) return;
     const center = this.diagram.viewportBounds.center;
-    const nextScale = Math.min(
-      this.diagram.maxScale,
-      Math.max(this.diagram.minScale, this.diagram.scale * factor)
-    );
+    const nextScale = Math.min(this.diagram.maxScale, Math.max(this.diagram.minScale, this.diagram.scale * factor));
     this.diagram.scale = nextScale;
     const viewport = this.diagram.viewportBounds;
-    this.diagram.position = new go.Point(
-      center.x - viewport.width / 2,
-      center.y - viewport.height / 2
-    );
+    this.diagram.position = new go.Point(center.x - viewport.width / 2, center.y - viewport.height / 2);
     this.syncZoomPercent();
   }
 
@@ -334,22 +320,27 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
   }
 
   private rebuildPalette(): void {
-    if (this.hydraulicPalette) {
-      this.hydraulicPalette.div = null;
-      this.hydraulicPalette = undefined;
+    if (this.componentPalette) {
+      this.componentPalette.div = null;
+      this.componentPalette = undefined;
     }
-    if (!this.viewReady || this.domain !== 'hydraulic') return;
+    if (!this.viewReady || !['hydraulic', 'electrical'].includes(this.domain)) return;
     const host = this.paletteDiv?.nativeElement;
     if (!host) return;
-    this.hydraulicPalette = createHydraulicPalette(host);
+    this.componentPalette = this.domain === 'hydraulic'
+      ? createHydraulicPalette(host)
+      : createElectricalPalette(host);
   }
 
   private rebuildDiagram(): void {
     if (!this.viewReady || !this.diagramDiv) return;
     if (this.diagram) this.diagram.div = null;
 
-    const hydraulicSystem = (this.domain === 'hydraulic' ? this.selectedSystemId : 'PTR') as HydraulicSystemId;
-    this.diagram = createModelBuilderDiagram(this.diagramDiv.nativeElement, this.domain, hydraulicSystem);
+    let systemId: HydraulicSystemId | ElectricalSystemId = 'PTR';
+    if (this.domain === 'hydraulic') systemId = this.selectedSystemId as HydraulicSystemId;
+    if (this.domain === 'electrical') systemId = this.selectedSystemId as ElectricalSystemId;
+
+    this.diagram = createModelBuilderDiagram(this.diagramDiv.nativeElement, this.domain, systemId);
     this.syncSystemTable();
     this.selectedTableKey = this.systemRows[0]?.key;
     this.syncZoomPercent();
@@ -413,9 +404,12 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
       return '—';
     }
     if (this.domain === 'electrical') {
-      if (/MOTOR/i.test(type)) return 'LLI205JA';
+      if (/GENERATOR|GES/i.test(type)) return 'Fuel / auxiliaries / start';
       if (/BREAKER/i.test(type)) return 'Protection / I&C';
-      if (/DIESEL/i.test(type)) return 'Fuel / auxiliaries';
+      if (/TRANSFORMER/i.test(type)) return 'Upstream AC supply';
+      if (/CHARGER|RECTIFIER|INVERTER|CONVERTER/i.test(type)) return 'Upstream supply / cooling';
+      if (/BATTERY/i.test(type)) return 'Charger / room conditions';
+      if (/SWITCHBOARD/i.test(type)) return 'Upstream electrical supply';
       return 'Upstream supply';
     }
     if (this.domain === 'ic') {
@@ -436,6 +430,6 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
     document.removeEventListener('mouseup', this.onPaletteResizeEnd);
     document.body.classList.remove('palette-resizing');
     if (this.diagram) this.diagram.div = null;
-    if (this.hydraulicPalette) this.hydraulicPalette.div = null;
+    if (this.componentPalette) this.componentPalette.div = null;
   }
 }
