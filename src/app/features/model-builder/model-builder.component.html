@@ -10,7 +10,7 @@
         </div>
         <div class="search-box">⌕ Search components</div>
 
-        <div class="gojs-palette-shell" *ngIf="domain === 'hydraulic' || domain === 'electrical'">
+        <div class="gojs-palette-shell" *ngIf="domain === 'hydraulic' || domain === 'electrical' || domain === 'hvac'">
           <div class="palette-table-header">
             <span>Symbol</span>
             <span>Component / description</span>
@@ -19,7 +19,7 @@
           <div class="palette-hint">Drag a component row onto the {{ domainLabel | lowercase }} canvas</div>
         </div>
 
-        <div class="palette-grid" *ngIf="domain !== 'hydraulic' && domain !== 'electrical'">
+        <div class="palette-grid" *ngIf="domain === 'ic'">
           <button *ngFor="let item of palette" type="button" class="palette-item">
             <span class="palette-symbol">{{ item.symbol }}</span>
             <span>{{ item.label }}</span>
@@ -77,7 +77,8 @@
           <div #diagramDiv class="diagram"></div>
           <div class="canvas-badge" *ngIf="domain === 'hydraulic'">P&amp;ID workspace · wheel zoom · rubber-band multi-select · normalized symbols · orthogonal pipes</div>
           <div class="canvas-badge" *ngIf="domain === 'electrical'">Electrical single-line workspace · wheel zoom · rubber-band multi-select · vector symbols · orthogonal feeders</div>
-          <div class="canvas-badge" *ngIf="domain !== 'hydraulic' && domain !== 'electrical'">Model workspace · wheel zoom · rubber-band multi-select · orthogonal links</div>
+          <div class="canvas-badge" *ngIf="domain === 'hvac'">HVAC airflow workspace · wheel zoom · representative HVAC symbols · orthogonal ducts</div>
+          <div class="canvas-badge" *ngIf="domain === 'ic'">Model workspace · wheel zoom · rubber-band multi-select · orthogonal links</div>
         </div>
 
         <section class="systems-panel">
