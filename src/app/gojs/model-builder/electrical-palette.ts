@@ -9,6 +9,7 @@ interface ElectricalPaletteNodeData {
   kbClass: string;
   groupLabel: string;
   description: string;
+  rating: string;
   source: string;
 }
 
@@ -20,6 +21,7 @@ const ITEMS: ElectricalPaletteNodeData[] = ELECTRICAL_SYMBOLS.map((symbol, index
   kbClass: symbol.kbClass,
   groupLabel: symbol.groupLabel,
   description: symbol.description,
+  rating: symbol.rating,
   source: symbol.source
 }));
 
@@ -40,7 +42,7 @@ export function createElectricalPalette(host: HTMLDivElement): go.Palette {
       alignment: go.GridAlignment.Position,
       sorting: go.GridSorting.Ascending,
       comparer: (a: go.Part, b: go.Part) => {
-        const order = ['Sources', 'Protection', 'Transformers', 'Conversion', 'Storage', 'Distribution'];
+        const order = ['Sources', 'Protection & Switching', 'Transformers', 'Conversion', 'Storage', 'Distribution'];
         const ga = order.indexOf(a.data?.groupLabel ?? '');
         const gb = order.indexOf(b.data?.groupLabel ?? '');
         if (ga !== gb) return ga - gb;
@@ -54,7 +56,7 @@ export function createElectricalPalette(host: HTMLDivElement): go.Palette {
       selectionAdorned: false,
       copyable: true,
       movable: true,
-      minSize: new go.Size(214, 62)
+      minSize: new go.Size(214, 74)
     },
     $(go.Shape, 'RoundedRectangle', {
       name: 'ROW_BACKGROUND',
@@ -67,22 +69,22 @@ export function createElectricalPalette(host: HTMLDivElement): go.Palette {
     $(go.Panel, 'Table', {
         name: 'ROW_TABLE',
         width: 260,
-        height: 62,
+        height: 74,
         padding: new go.Margin(5, 8, 5, 6),
         defaultAlignment: go.Spot.Left
       },
-      $(go.RowColumnDefinition, { column: 0, width: 62 }),
+      $(go.RowColumnDefinition, { column: 0, width: 66 }),
       $(go.RowColumnDefinition, { column: 1 }),
       $(go.Panel, 'Spot', {
           name: 'SYMBOL_CELL',
           column: 0,
-          width: 58,
-          height: 50,
+          width: 62,
+          height: 58,
           alignment: go.Spot.Center
         },
         $(go.Picture, {
             name: 'SYMBOL_PICTURE',
-            desiredSize: new go.Size(52, 42),
+            desiredSize: new go.Size(56, 48),
             imageStretch: go.ImageStretch.Uniform,
             imageAlignment: go.Spot.Center
           },
@@ -104,10 +106,19 @@ export function createElectricalPalette(host: HTMLDivElement): go.Palette {
             overflow: go.TextOverflow.Ellipsis
           }, new go.Binding('text', 'type')),
         $(go.TextBlock, {
-            name: 'DESC_TEXT',
-            margin: new go.Margin(4, 0, 0, 0),
+            name: 'RATING_TEXT',
+            margin: new go.Margin(3, 0, 0, 0),
             width: 180,
-            font: '7.5px Inter, sans-serif',
+            font: '700 7.5px Inter, sans-serif',
+            stroke: '#1647ff',
+            maxLines: 1,
+            overflow: go.TextOverflow.Ellipsis
+          }, new go.Binding('text', 'rating')),
+        $(go.TextBlock, {
+            name: 'DESC_TEXT',
+            margin: new go.Margin(3, 0, 0, 0),
+            width: 180,
+            font: '7.2px Inter, sans-serif',
             stroke: '#64748b',
             wrap: go.Wrap.Fit,
             maxLines: 2,
@@ -128,21 +139,23 @@ export function createElectricalPalette(host: HTMLDivElement): go.Palette {
   const syncRowWidths = (): void => {
     const available = Math.max(226, host.clientWidth - 14);
     const rowWidth = Math.max(214, available);
-    const symbolColumn = rowWidth < 270 ? 56 : 62;
-    const textWidth = Math.max(138, rowWidth - symbolColumn - 20);
-    const pictureWidth = rowWidth < 270 ? 46 : 52;
-    const pictureHeight = rowWidth < 270 ? 38 : 42;
+    const symbolColumn = rowWidth < 270 ? 58 : 66;
+    const textWidth = Math.max(136, rowWidth - symbolColumn - 20);
+    const pictureWidth = rowWidth < 270 ? 48 : 56;
+    const pictureHeight = rowWidth < 270 ? 42 : 48;
 
     palette.nodes.each(node => {
       const row = node.findObject('ROW_TABLE');
       const symbolCell = node.findObject('SYMBOL_CELL');
       const picture = node.findObject('SYMBOL_PICTURE') as go.Picture | null;
       const typeText = node.findObject('TYPE_TEXT') as go.TextBlock | null;
+      const ratingText = node.findObject('RATING_TEXT') as go.TextBlock | null;
       const descText = node.findObject('DESC_TEXT') as go.TextBlock | null;
       if (row) row.width = rowWidth;
       if (symbolCell) symbolCell.width = symbolColumn - 4;
       if (picture) picture.desiredSize = new go.Size(pictureWidth, pictureHeight);
       if (typeText) typeText.width = textWidth;
+      if (ratingText) ratingText.width = textWidth;
       if (descText) descText.width = textWidth;
     });
     palette.requestUpdate();
