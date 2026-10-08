@@ -81,8 +81,16 @@ export function installElectricalSymbols(target: go.Diagram | go.Palette, palett
             stroke: '#172033',
             textAlign: 'center',
             editable: !palette,
-            maxSize: new go.Size(palette ? 115 : 145, NaN)
-          }, palette ? new go.Binding('text', 'type') : new go.Binding('text', 'name').makeTwoWay())
+            maxSize: new go.Size(palette ? 115 : 155, NaN)
+          }, palette ? new go.Binding('text', 'type') : new go.Binding('text', 'name').makeTwoWay()),
+        $(go.TextBlock, symbol.rating, {
+          margin: new go.Margin(2, 0, 0, 0),
+          font: `${palette ? 6.5 : 7.4}px Inter, sans-serif`,
+          stroke: '#1647ff',
+          textAlign: 'center',
+          maxSize: new go.Size(palette ? 120 : 175, NaN),
+          wrap: go.Wrap.Fit
+        })
       )
     );
   }
