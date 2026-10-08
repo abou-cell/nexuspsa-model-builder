@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="92" height="64" viewBox="0 0 92 64" role="img" aria-label="MV circuit breaker">
+  <g fill="none" stroke="#1647ff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 32h18M70 32h18"/>
+    <rect x="22" y="10" width="48" height="44" rx="4" fill="#eef3ff"/>
+    <circle cx="34" cy="40" r="2.8" fill="#1647ff"/>
+    <circle cx="58" cy="24" r="2.8" fill="#1647ff"/>
+    <path d="M37 38l18-12" stroke-width="4"/>
+  </g>
+  <rect x="33" y="13" width="26" height="11" rx="2" fill="#1647ff"/>
+  <text x="46" y="21" fill="#ffffff" font-family="Arial,sans-serif" font-size="8" font-weight="700" text-anchor="middle">52</text>
+</svg>
