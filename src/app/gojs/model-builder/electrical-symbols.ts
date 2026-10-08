@@ -34,8 +34,9 @@ function portsFor(category: string): PortSpec[] {
 
 export function installElectricalSymbols(target: go.Diagram | go.Palette, palette = false): void {
   const $ = go.GraphObject.make;
-  // GoJS-only rendering scale. Keep symbols compact but readable.
-  const k = palette ? 0.30 : 0.42;
+  // Restored to the readable pre-reduction GoJS scale.
+  // Angular controls the available workspace; GoJS keeps engineering symbols legible.
+  const k = palette ? 0.42 : 0.68;
 
   const makePort = (spec: PortSpec): go.Shape => $(go.Shape, 'Circle', {
     alignment: spec.spot,
@@ -43,7 +44,7 @@ export function installElectricalSymbols(target: go.Diagram | go.Palette, palett
     height: Math.max(4, 6 * k),
     fill: '#ffffff',
     stroke: '#1647ff',
-    strokeWidth: 0.9,
+    strokeWidth: 1,
     opacity: 0,
     portId: spec.id,
     fromLinkable: !palette && spec.from,
@@ -80,20 +81,20 @@ export function installElectricalSymbols(target: go.Diagram | go.Palette, palett
         new go.Binding('angle', 'angle').makeTwoWay(),
         panel,
         $(go.TextBlock, {
-            margin: new go.Margin(palette ? 2 : 3, 0, 0, 0),
-            font: `${palette ? 6.8 : 7.8}px Inter, sans-serif`,
+            margin: new go.Margin(palette ? 2 : 4, 0, 0, 0),
+            font: `${palette ? 7.2 : 8.2}px Inter, sans-serif`,
             stroke: '#172033',
             textAlign: 'center',
             editable: !palette,
-            maxSize: new go.Size(palette ? 110 : 140, NaN),
+            maxSize: new go.Size(palette ? 115 : 150, NaN),
             wrap: go.Wrap.Fit
           }, palette ? new go.Binding('text', 'type') : new go.Binding('text', 'name').makeTwoWay()),
         $(go.TextBlock, symbol.rating, {
-          margin: new go.Margin(1, 0, 0, 0),
-          font: `${palette ? 6 : 6.6}px Inter, sans-serif`,
+          margin: new go.Margin(2, 0, 0, 0),
+          font: `${palette ? 6.4 : 7}px Inter, sans-serif`,
           stroke: '#1647ff',
           textAlign: 'center',
-          maxSize: new go.Size(palette ? 115 : 150, NaN),
+          maxSize: new go.Size(palette ? 120 : 165, NaN),
           wrap: go.Wrap.Fit
         })
       )
