@@ -6,11 +6,13 @@ import * as go from 'gojs';
 import {
   createModelBuilderDiagram,
   ElectricalSystemId,
+  HvacSystemId,
   HydraulicSystemId,
   ModelDomain
 } from '../../gojs/model-builder/model-builder-diagram';
 import { createHydraulicPalette } from '../../gojs/model-builder/hydraulic-palette';
 import { createElectricalPalette } from '../../gojs/model-builder/electrical-palette';
+import { createHvacPalette } from '../../gojs/model-builder/hvac-palette';
 
 interface PaletteItem {
   label: string;
@@ -63,6 +65,7 @@ const DOMAIN_TITLES: Record<ModelDomain, string> = {
 const DOMAIN_PALETTES: Record<ModelDomain, readonly PaletteItem[]> = {
   hydraulic: [],
   electrical: [],
+  hvac: [],
   ic: [
     { label: 'Sensor', symbol: '◈' },
     { label: 'Transmitter', symbol: 'T' },
@@ -72,16 +75,6 @@ const DOMAIN_PALETTES: Record<ModelDomain, readonly PaletteItem[]> = {
     { label: 'Relay', symbol: 'R' },
     { label: 'Signal', symbol: '→' },
     { label: 'I&C Power', symbol: 'ϟ' }
-  ],
-  hvac: [
-    { label: 'Fan', symbol: '✣' },
-    { label: 'Damper', symbol: '⋈' },
-    { label: 'Filter', symbol: '▦' },
-    { label: 'Duct', symbol: '━' },
-    { label: 'Cooler', symbol: '❄' },
-    { label: 'Room', symbol: '▣' },
-    { label: 'Boundary', symbol: '⊣' },
-    { label: 'Sensor', symbol: '◈' }
   ]
 };
 
@@ -93,7 +86,9 @@ const SYSTEMS: EngineeringSystem[] = [
   { id: 'ELEC-LV', description: '690 V / 400 V essential low-voltage distribution', createdAt: '2026-10-08', creatorId: 'AR-001', domain: 'electrical' },
   { id: 'ELEC-DC', description: '220 Vdc / 125 Vdc backed power and conversion system', createdAt: '2026-10-08', creatorId: 'AR-001', domain: 'electrical' },
   { id: 'IC-A', description: 'Example control and instrumentation architecture', createdAt: '2026-10-07', creatorId: 'AR-001', domain: 'ic' },
-  { id: 'HVAC-A', description: 'Example ventilation architecture', createdAt: '2026-10-07', creatorId: 'AR-001', domain: 'hvac' }
+  { id: 'HVAC-SUPPLY', description: 'Outdoor-air treatment and protected-room supply ventilation', createdAt: '2026-10-08', creatorId: 'AR-001', domain: 'hvac' },
+  { id: 'HVAC-EXTRACT', description: 'Room extraction with HEPA and activated-carbon filtration', createdAt: '2026-10-08', creatorId: 'AR-001', domain: 'hvac' },
+  { id: 'HVAC-SAFETY', description: 'Safety-related filtered ventilation and air treatment train', createdAt: '2026-10-08', creatorId: 'AR-001', domain: 'hvac' }
 ];
 
 @Component({
@@ -191,21 +186,21 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
     const component = this.selectedComponent;
     if (!component) return [];
     const type = component.componentType.toUpperCase();
-    if (/PUMP|FAN|MOTOR|DIESEL|GENERATOR|GES/.test(type)) {
+    if (/PUMP|FAN|MOTOR|DIESEL|GENERATOR|GES|AHU/.test(type)) {
       return [
         { code: 'FTS', name: 'Fail to start / energize', category: 'Demand', enabled: true },
         { code: 'FTR', name: 'Fail to run / supply', category: 'Mission', enabled: true },
         { code: 'SS', name: 'Spurious stop / trip', category: 'Spurious', enabled: true }
       ];
     }
-    if (/VALVE|DAMPER|BREAKER/.test(type)) {
+    if (/VALVE|DAMPER|BREAKER|VAV/.test(type)) {
       return [
         { code: 'FTC', name: 'Fail to change state', category: 'Demand', enabled: true },
         { code: 'FO', name: 'Fail open', category: 'Position', enabled: true },
         { code: 'FC', name: 'Fail closed', category: 'Position', enabled: true }
       ];
     }
-    if (/HEAT EXCHANGER|FILTER|TRANSFORMER|RECTIFIER|INVERTER|CONVERTER/.test(type)) {
+    if (/HEAT EXCHANGER|FILTER|TRANSFORMER|RECTIFIER|INVERTER|CONVERTER|COIL|HEATER|RECOVERY|HUMIDIFIER/.test(type)) {
       return [
         { code: 'DEG', name: 'Degraded function', category: 'Performance', enabled: true },
         { code: 'LOF', name: 'Loss of function', category: 'Mission', enabled: true }
@@ -231,7 +226,7 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
     ];
     if (component.inputs > 0) rows.push({ id: 'R-02', name: 'Upstream dependency', condition: 'Required upstream path unavailable', result: 'Propagate loss of function' });
     if (component.support !== '—') rows.push({ id: 'R-03', name: 'Support dependency', condition: `${component.support} unavailable`, result: `Set ${component.identifier} unavailable` });
-    if (/VALVE|BREAKER|DAMPER/i.test(component.componentType)) rows.push({ id: 'R-04', name: 'Command dependency', condition: 'Required command not received', result: 'Generate actuation failure branch' });
+    if (/VALVE|BREAKER|DAMPER|VAV/i.test(component.componentType)) rows.push({ id: 'R-04', name: 'Command dependency', condition: 'Required command not received', result: 'Generate actuation failure branch' });
     return rows;
   }
 
@@ -324,21 +319,22 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
       this.componentPalette.div = null;
       this.componentPalette = undefined;
     }
-    if (!this.viewReady || !['hydraulic', 'electrical'].includes(this.domain)) return;
+    if (!this.viewReady || !['hydraulic', 'electrical', 'hvac'].includes(this.domain)) return;
     const host = this.paletteDiv?.nativeElement;
     if (!host) return;
-    this.componentPalette = this.domain === 'hydraulic'
-      ? createHydraulicPalette(host)
-      : createElectricalPalette(host);
+    if (this.domain === 'hydraulic') this.componentPalette = createHydraulicPalette(host);
+    if (this.domain === 'electrical') this.componentPalette = createElectricalPalette(host);
+    if (this.domain === 'hvac') this.componentPalette = createHvacPalette(host);
   }
 
   private rebuildDiagram(): void {
     if (!this.viewReady || !this.diagramDiv) return;
     if (this.diagram) this.diagram.div = null;
 
-    let systemId: HydraulicSystemId | ElectricalSystemId = 'PTR';
+    let systemId: HydraulicSystemId | ElectricalSystemId | HvacSystemId = 'PTR';
     if (this.domain === 'hydraulic') systemId = this.selectedSystemId as HydraulicSystemId;
     if (this.domain === 'electrical') systemId = this.selectedSystemId as ElectricalSystemId;
+    if (this.domain === 'hvac') systemId = this.selectedSystemId as HvacSystemId;
 
     this.diagram = createModelBuilderDiagram(this.diagramDiv.nativeElement, this.domain, systemId);
     this.syncSystemTable();
@@ -418,8 +414,13 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
       if (/LOGIC/i.test(type)) return 'I&C power';
       return 'Logic channel';
     }
-    if (/FAN/i.test(type)) return 'Electrical supply';
-    if (/DAMPER/i.test(type)) return 'Actuation / I&C';
+    if (/FAN|AHU/i.test(type)) return 'Electrical supply / I&C';
+    if (/DAMPER|VAV/i.test(type)) return 'Actuation / I&C';
+    if (/COOLING COIL/i.test(type)) return 'Chilled-water support';
+    if (/HEATING COIL/i.test(type)) return 'Hot-water support';
+    if (/ELECTRIC HEATER/i.test(type)) return 'Electrical supply';
+    if (/FILTER/i.test(type)) return 'Air path / ΔP monitoring';
+    if (/HUMIDIFIER/i.test(type)) return 'Water / electrical supply';
     if (/ROOM/i.test(identifier)) return 'Boundary condition';
     return 'Air path';
   }
