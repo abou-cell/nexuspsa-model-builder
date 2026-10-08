@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="72" viewBox="0 0 100 72" role="img" aria-label="Unit generator">
+  <g fill="none" stroke="#1647ff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 36h16M80 36h16"/>
+    <circle cx="50" cy="36" r="27" fill="#eef3ff"/>
+    <path d="M33 47c5-9 10 9 15 0s10 9 15 0" stroke-width="2.4"/>
+  </g>
+  <text x="50" y="34" fill="#0d36c7" font-family="Arial,sans-serif" font-size="20" font-weight="700" text-anchor="middle">G</text>
+</svg>
