@@ -48,7 +48,7 @@ export function createHydraulicPalette(host: HTMLDivElement): go.Palette {
 
   const palette = $(go.Palette, host, {
     contentAlignment: go.Spot.TopLeft,
-    padding: new go.Margin(4, 4, 8, 4),
+    padding: new go.Margin(5, 5, 8, 5),
     initialScale: 1,
     allowHorizontalScroll: false,
     hasHorizontalScrollbar: false,
@@ -56,7 +56,7 @@ export function createHydraulicPalette(host: HTMLDivElement): go.Palette {
     hasVerticalScrollbar: true,
     layout: $(go.GridLayout, {
       wrappingColumn: 1,
-      spacing: new go.Size(0, 3),
+      spacing: new go.Size(0, 4),
       cellSize: new go.Size(1, 1),
       alignment: go.GridAlignment.Position,
       sorting: go.GridSorting.Ascending,
@@ -70,41 +70,48 @@ export function createHydraulicPalette(host: HTMLDivElement): go.Palette {
     })
   });
 
-  const rowTemplate = $(go.Node, 'Auto', {
+  const makeRowTemplate = (): go.Node => $(go.Node, 'Auto', {
       cursor: 'grab',
       selectionAdorned: false,
       copyable: true,
-      movable: true
+      movable: true,
+      minSize: new go.Size(214, 62)
     },
     $(go.Shape, 'RoundedRectangle', {
+      name: 'ROW_BACKGROUND',
       fill: '#ffffff',
       stroke: '#d9e3ee',
       strokeWidth: 1,
-      parameter1: 4
+      parameter1: 4,
+      stretch: go.Stretch.Fill
     }),
     $(go.Panel, 'Table', {
         name: 'ROW_TABLE',
         width: 260,
-        minSize: new go.Size(210, 58),
-        padding: new go.Margin(5, 7, 5, 5),
+        height: 62,
+        padding: new go.Margin(5, 8, 5, 6),
         defaultAlignment: go.Spot.Left
       },
-      $(go.RowColumnDefinition, { column: 0, width: 58 }),
+      $(go.RowColumnDefinition, { column: 0, width: 62 }),
       $(go.RowColumnDefinition, { column: 1 }),
+
       $(go.Panel, 'Spot', {
+          name: 'SYMBOL_CELL',
           column: 0,
-          width: 54,
-          height: 46,
+          width: 58,
+          height: 50,
           alignment: go.Spot.Center
         },
         $(go.Picture, {
-            desiredSize: new go.Size(50, 40),
+            name: 'SYMBOL_PICTURE',
+            desiredSize: new go.Size(52, 42),
             imageStretch: go.ImageStretch.Uniform,
             imageAlignment: go.Spot.Center
           },
           new go.Binding('source', 'source')
         )
       ),
+
       $(go.Panel, 'Vertical', {
           name: 'TEXT_PANEL',
           column: 1,
@@ -114,7 +121,8 @@ export function createHydraulicPalette(host: HTMLDivElement): go.Palette {
         },
         $(go.TextBlock, {
             name: 'TYPE_TEXT',
-            font: '700 8.5px Inter, sans-serif',
+            width: 180,
+            font: '700 9px Inter, sans-serif',
             stroke: '#172033',
             maxLines: 1,
             overflow: go.TextOverflow.Ellipsis
@@ -123,9 +131,9 @@ export function createHydraulicPalette(host: HTMLDivElement): go.Palette {
         ),
         $(go.TextBlock, {
             name: 'DESC_TEXT',
-            margin: new go.Margin(3, 0, 0, 0),
-            width: 184,
-            font: '7.2px Inter, sans-serif',
+            margin: new go.Margin(4, 0, 0, 0),
+            width: 180,
+            font: '7.5px Inter, sans-serif',
             stroke: '#64748b',
             wrap: go.Wrap.Fit,
             maxLines: 2,
@@ -137,8 +145,11 @@ export function createHydraulicPalette(host: HTMLDivElement): go.Palette {
     )
   );
 
+  // Create a fresh bound template for each category. Do not clone/copy a
+  // bound GraphObject: fresh templates guarantee Picture/Text bindings are
+  // retained and rendered for every catalogue row.
   for (const category of new Set(ITEMS.map(item => item.category))) {
-    palette.nodeTemplateMap.add(category, rowTemplate.copy());
+    palette.nodeTemplateMap.add(category, makeRowTemplate());
   }
 
   const model = new go.GraphLinksModel(ITEMS);
@@ -146,22 +157,42 @@ export function createHydraulicPalette(host: HTMLDivElement): go.Palette {
   palette.model = model;
 
   const syncRowWidths = (): void => {
-    const viewportWidth = Math.max(220, palette.viewportBounds.width || host.clientWidth);
-    const rowWidth = Math.max(210, viewportWidth - 12);
-    const textWidth = Math.max(130, rowWidth - 76);
+    const available = Math.max(226, host.clientWidth - 14);
+    const rowWidth = Math.max(214, available);
+
+    // The symbol column stays large enough to read P&ID geometry. The text
+    // column consumes the remaining width and scales its text area with it.
+    const symbolColumn = rowWidth < 270 ? 56 : 62;
+    const textWidth = Math.max(138, rowWidth - symbolColumn - 20);
+    const pictureWidth = rowWidth < 270 ? 46 : 52;
+    const pictureHeight = rowWidth < 270 ? 38 : 42;
 
     palette.nodes.each(node => {
       const row = node.findObject('ROW_TABLE');
-      const desc = node.findObject('DESC_TEXT');
+      const symbolCell = node.findObject('SYMBOL_CELL');
+      const picture = node.findObject('SYMBOL_PICTURE') as go.Picture | null;
+      const typeText = node.findObject('TYPE_TEXT') as go.TextBlock | null;
+      const descText = node.findObject('DESC_TEXT') as go.TextBlock | null;
+
       if (row) row.width = rowWidth;
-      if (desc) desc.width = textWidth;
+      if (symbolCell) symbolCell.width = symbolColumn - 4;
+      if (picture) picture.desiredSize = new go.Size(pictureWidth, pictureHeight);
+      if (typeText) typeText.width = textWidth;
+      if (descText) descText.width = textWidth;
     });
+
     palette.requestUpdate();
   };
 
   palette.addDiagramListener('InitialLayoutCompleted', syncRowWidths);
   palette.addDiagramListener('ViewportBoundsChanged', syncRowWidths);
-  setTimeout(syncRowWidths);
 
+  const resizeObserver = new ResizeObserver(() => {
+    syncRowWidths();
+    palette.requestUpdate();
+  });
+  resizeObserver.observe(host);
+
+  setTimeout(syncRowWidths);
   return palette;
 }
