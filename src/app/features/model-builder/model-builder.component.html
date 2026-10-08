@@ -1,6 +1,8 @@
 <div class="workspace-shell">
   <main class="workspace-grid" [class.inspector-hidden]="!inspectorVisible">
-    <aside #leftPanel class="left-panel panel" [style.width.px]="paletteWidth">
+    <aside #leftPanel class="left-panel panel"
+           [style.width.px]="paletteWidth"
+           style="position:relative; overflow-x:hidden;">
       <section class="panel-section component-library-section">
         <div class="panel-heading">
           <span>Component library</span>
@@ -13,7 +15,7 @@
             <span>Symbol</span>
             <span>Component / description</span>
           </div>
-          <div #paletteDiv class="gojs-palette"></div>
+          <div #paletteDiv class="gojs-palette" style="overflow:hidden;"></div>
           <div class="palette-hint">Drag a component row onto the hydraulic canvas</div>
         </div>
 
@@ -28,6 +30,7 @@
            role="separator"
            aria-orientation="vertical"
            title="Drag left or right to resize the component library"
+           style="position:absolute; top:0; right:0; bottom:0; width:5px; cursor:col-resize; z-index:20; background:transparent;"
            (mousedown)="startPaletteResize($event)"></div>
     </aside>
 
