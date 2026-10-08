@@ -3,10 +3,12 @@ import { installHydraulicPidTemplates } from './hydraulic-pid-symbols';
 import { installValidatedHydraulicTemplates } from './validated-hydraulic-symbols';
 import { installApprovedPidSymbols } from './approved-pid-symbols';
 import { installElectricalSymbols } from './electrical-symbols';
+import { installHvacSymbols } from './hvac-symbols';
 
 export type ModelDomain = 'hydraulic' | 'electrical' | 'ic' | 'hvac';
 export type HydraulicSystemId = 'PTR' | 'RRI' | 'SEC';
 export type ElectricalSystemId = 'ELEC-10KV' | 'ELEC-LV' | 'ELEC-DC';
+export type HvacSystemId = 'HVAC-SUPPLY' | 'HVAC-EXTRACT' | 'HVAC-SAFETY';
 
 interface DomainNode {
   key: number;
@@ -150,7 +152,71 @@ const electricalSamples: Record<ElectricalSystemId, DomainSample> = {
   }
 };
 
-const samples: Record<'ic' | 'hvac', DomainSample> = {
+const hvacSamples: Record<HvacSystemId, DomainSample> = {
+  'HVAC-SUPPLY': {
+    accent: '#0891b2',
+    nodes: [
+      { key: 1, name: 'OA-INTAKE', type: 'Air Intake', loc: '90 150' },
+      { key: 2, name: 'DMP-SUP-01', type: 'Shutoff Damper', loc: '205 150' },
+      { key: 3, name: 'FLT-SUP-01', type: 'Air Filter', loc: '325 150' },
+      { key: 4, name: 'HC-SUP-01', type: 'Heating Coil', loc: '445 150' },
+      { key: 5, name: 'CC-SUP-01', type: 'Cooling Coil', loc: '565 150' },
+      { key: 6, name: 'FAN-SUP-01', type: 'Supply Fan', loc: '685 150' },
+      { key: 7, name: 'VAV-01', type: 'VAV Box', loc: '685 275' },
+      { key: 8, name: 'ROOM-A', type: 'Protected Room', loc: '805 275' }
+    ],
+    links: [
+      { from: 1, to: 2, fromPort: 'OUT', toPort: 'IN' },
+      { from: 2, to: 3, fromPort: 'OUT', toPort: 'IN' },
+      { from: 3, to: 4, fromPort: 'OUT', toPort: 'IN' },
+      { from: 4, to: 5, fromPort: 'OUT', toPort: 'IN' },
+      { from: 5, to: 6, fromPort: 'OUT', toPort: 'IN' },
+      { from: 6, to: 7, fromPort: 'OUT', toPort: 'IN' },
+      { from: 7, to: 8, fromPort: 'OUT', toPort: 'IN' }
+    ]
+  },
+  'HVAC-EXTRACT': {
+    accent: '#0891b2',
+    nodes: [
+      { key: 1, name: 'ROOM-B', type: 'Protected Room', loc: '100 160' },
+      { key: 2, name: 'FD-EXT-01', type: 'Fire Damper', loc: '230 160' },
+      { key: 3, name: 'HEPA-01', type: 'HEPA Filter', loc: '360 160' },
+      { key: 4, name: 'CARB-01', type: 'Activated Carbon Filter', loc: '490 160' },
+      { key: 5, name: 'FAN-EXT-01', type: 'Extract Fan', loc: '625 160' },
+      { key: 6, name: 'DMP-EXT-01', type: 'Shutoff Damper', loc: '755 160' }
+    ],
+    links: [
+      { from: 1, to: 2, fromPort: 'OUT', toPort: 'IN' },
+      { from: 2, to: 3, fromPort: 'OUT', toPort: 'IN' },
+      { from: 3, to: 4, fromPort: 'OUT', toPort: 'IN' },
+      { from: 4, to: 5, fromPort: 'OUT', toPort: 'IN' },
+      { from: 5, to: 6, fromPort: 'OUT', toPort: 'IN' }
+    ]
+  },
+  'HVAC-SAFETY': {
+    accent: '#0891b2',
+    nodes: [
+      { key: 1, name: 'OA-SAFETY', type: 'Air Intake', loc: '90 155' },
+      { key: 2, name: 'FD-SAF-01', type: 'Fire Damper', loc: '210 155' },
+      { key: 3, name: 'HEPA-SAF-01', type: 'HEPA Filter', loc: '330 155' },
+      { key: 4, name: 'EH-SAF-01', type: 'Electric Heater', loc: '450 155' },
+      { key: 5, name: 'AHU-SAF-01', type: 'Air Handling Unit', loc: '585 155' },
+      { key: 6, name: 'HUM-SAF-01', type: 'Humidifier', loc: '720 155' },
+      { key: 7, name: 'ROOM-SAF', type: 'Protected Room', loc: '835 155' },
+      { key: 8, name: 'HR-01', type: 'Heat Recovery', loc: '585 300' }
+    ],
+    links: [
+      { from: 1, to: 2, fromPort: 'OUT', toPort: 'IN' },
+      { from: 2, to: 3, fromPort: 'OUT', toPort: 'IN' },
+      { from: 3, to: 4, fromPort: 'OUT', toPort: 'IN' },
+      { from: 4, to: 5, fromPort: 'OUT', toPort: 'IN' },
+      { from: 5, to: 6, fromPort: 'OUT', toPort: 'IN' },
+      { from: 6, to: 7, fromPort: 'OUT', toPort: 'IN' }
+    ]
+  }
+};
+
+const samples: Record<'ic', DomainSample> = {
   ic: {
     accent: '#7c3aed',
     nodes: [
@@ -164,34 +230,22 @@ const samples: Record<'ic' | 'hvac', DomainSample> = {
       { from: 4, to: 2 },
       { from: 2, to: 3 }
     ]
-  },
-  hvac: {
-    accent: '#0891b2',
-    nodes: [
-      { key: 1, name: 'DVL001ZV', type: 'Damper', loc: '130 150' },
-      { key: 2, name: 'DVL001ZV-FAN', type: 'Fan', loc: '350 150' },
-      { key: 3, name: 'FILTER-A', type: 'Filter', loc: '565 150' },
-      { key: 4, name: 'ROOM-A', type: 'Protected Room', loc: '565 310' }
-    ],
-    links: [
-      { from: 1, to: 2 },
-      { from: 2, to: 3 },
-      { from: 3, to: 4 }
-    ]
   }
 };
 
 export function createModelBuilderDiagram(
   host: HTMLDivElement,
   domain: ModelDomain,
-  systemId: HydraulicSystemId | ElectricalSystemId = 'PTR'
+  systemId: HydraulicSystemId | ElectricalSystemId | HvacSystemId = 'PTR'
 ): go.Diagram {
   const $ = go.GraphObject.make;
   const sample = domain === 'hydraulic'
     ? hydraulicSamples[(systemId as HydraulicSystemId) in hydraulicSamples ? systemId as HydraulicSystemId : 'PTR']
     : domain === 'electrical'
       ? electricalSamples[(systemId as ElectricalSystemId) in electricalSamples ? systemId as ElectricalSystemId : 'ELEC-10KV']
-      : samples[domain];
+      : domain === 'hvac'
+        ? hvacSamples[(systemId as HvacSystemId) in hvacSamples ? systemId as HvacSystemId : 'HVAC-SUPPLY']
+        : samples.ic;
 
   const diagram = $(go.Diagram, host, {
     'undoManager.isEnabled': true,
@@ -233,6 +287,8 @@ export function createModelBuilderDiagram(
     installApprovedPidSymbols(diagram);
   } else if (domain === 'electrical') {
     installElectricalSymbols(diagram);
+  } else if (domain === 'hvac') {
+    installHvacSymbols(diagram);
   }
 
   diagram.nodeTemplate = $(go.Node, 'Auto',
@@ -269,7 +325,8 @@ export function createModelBuilderDiagram(
     )
   );
 
-  const engineeringLine = domain === 'hydraulic' || domain === 'electrical';
+  const engineeringLine = domain === 'hydraulic' || domain === 'electrical' || domain === 'hvac';
+  const linkStroke = domain === 'hvac' ? '#0891b2' : '#1647ff';
   diagram.linkTemplate = $(go.Link,
     {
       routing: go.Routing.Orthogonal,
@@ -281,7 +338,7 @@ export function createModelBuilderDiagram(
       adjusting: go.LinkAdjusting.End
     },
     $(go.Shape, {
-      stroke: engineeringLine ? '#1647ff' : '#64748b',
+      stroke: engineeringLine ? linkStroke : '#64748b',
       strokeWidth: engineeringLine ? 1.4 : 1.5
     }),
     $(go.Shape, {
