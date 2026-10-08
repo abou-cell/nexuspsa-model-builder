@@ -56,7 +56,7 @@ export function createElectricalPalette(host: HTMLDivElement): go.Palette {
       selectionAdorned: false,
       copyable: true,
       movable: true,
-      minSize: new go.Size(210, 68)
+      minSize: new go.Size(214, 72)
     },
     $(go.Shape, 'RoundedRectangle', {
       name: 'ROW_BACKGROUND',
@@ -68,24 +68,24 @@ export function createElectricalPalette(host: HTMLDivElement): go.Palette {
     }),
     $(go.Panel, 'Table', {
         name: 'ROW_TABLE',
-        width: 256,
-        height: 68,
+        width: 260,
+        height: 72,
         padding: new go.Margin(5, 7, 5, 5),
         defaultAlignment: go.Spot.Left
       },
-      $(go.RowColumnDefinition, { column: 0, width: 56 }),
+      $(go.RowColumnDefinition, { column: 0, width: 66 }),
       $(go.RowColumnDefinition, { column: 1 }),
       $(go.Panel, 'Spot', {
           name: 'SYMBOL_CELL',
           column: 0,
-          width: 52,
-          height: 50,
+          width: 62,
+          height: 56,
           alignment: go.Spot.Center
         },
         $(go.Picture, {
             name: 'SYMBOL_PICTURE',
-            desiredSize: new go.Size(44, 38),
-            maxSize: new go.Size(46, 40),
+            desiredSize: new go.Size(54, 48),
+            maxSize: new go.Size(56, 50),
             imageStretch: go.ImageStretch.Uniform,
             imageAlignment: go.Spot.Center,
             alignment: go.Spot.Center
@@ -102,7 +102,7 @@ export function createElectricalPalette(host: HTMLDivElement): go.Palette {
         $(go.TextBlock, {
             name: 'TYPE_TEXT',
             width: 180,
-            font: '700 9.2px Inter, sans-serif',
+            font: '700 9.3px Inter, sans-serif',
             stroke: '#172033',
             maxLines: 1,
             overflow: go.TextOverflow.Ellipsis
@@ -111,7 +111,7 @@ export function createElectricalPalette(host: HTMLDivElement): go.Palette {
             name: 'RATING_TEXT',
             margin: new go.Margin(2, 0, 0, 0),
             width: 180,
-            font: '700 7.4px Inter, sans-serif',
+            font: '700 7.2px Inter, sans-serif',
             stroke: '#1647ff',
             maxLines: 1,
             overflow: go.TextOverflow.Ellipsis
@@ -120,7 +120,7 @@ export function createElectricalPalette(host: HTMLDivElement): go.Palette {
             name: 'DESC_TEXT',
             margin: new go.Margin(2, 0, 0, 0),
             width: 180,
-            font: '6.9px Inter, sans-serif',
+            font: '6.6px Inter, sans-serif',
             stroke: '#64748b',
             wrap: go.Wrap.Fit,
             maxLines: 2,
@@ -139,13 +139,13 @@ export function createElectricalPalette(host: HTMLDivElement): go.Palette {
   palette.model = model;
 
   const syncRowWidths = (): void => {
-    const available = Math.max(218, host.clientWidth - 12);
-    const rowWidth = Math.max(210, available);
+    const available = Math.max(222, host.clientWidth - 12);
+    const rowWidth = Math.max(214, available);
     const narrow = rowWidth < 270;
-    const symbolColumn = narrow ? 50 : 56;
-    const textWidth = Math.max(136, rowWidth - symbolColumn - 18);
-    const pictureWidth = narrow ? 40 : 44;
-    const pictureHeight = narrow ? 34 : 38;
+    const symbolColumn = narrow ? 60 : 66;
+    const textWidth = Math.max(132, rowWidth - symbolColumn - 18);
+    const pictureWidth = narrow ? 50 : 54;
+    const pictureHeight = narrow ? 44 : 48;
 
     palette.nodes.each(node => {
       const row = node.findObject('ROW_TABLE');
