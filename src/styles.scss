@@ -31,6 +31,7 @@ body {
 button, input, select, textarea { font-family: inherit; }
 
 /* GoJS owns palette scrolling. Do not add a second HTML scrollbar around it. */
-app-model-builder .workspace-shell .gojs-palette {
+app-model-builder .workspace-shell .gojs-palette,
+app-ic-workspace .workspace-shell .gojs-palette {
   overflow: hidden !important;
 }
