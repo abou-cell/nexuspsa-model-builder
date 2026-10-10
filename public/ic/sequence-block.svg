@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="84" viewBox="0 0 120 84" role="img" aria-label="Sequence function block">
+  <g fill="none" stroke="#2563eb" stroke-width="3" stroke-linejoin="round">
+ <rect x="28" y="10" width="64" height="64" rx="8" fill="#eef5ff"/><path d="M48 23h24v12H48zM60 35v9M48 44h24v12H48zM60 56v8" stroke="#0b223d" stroke-width="2.5"/>
+ <text x="60" y="70" fill="#2563eb" stroke="none" font-size="8" font-weight="800" font-family="Arial" text-anchor="middle">SFC</text>
+</g>
+</svg>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="84" viewBox="0 0 120 84" role="img" aria-label="Trip shutdown device">
+  <g fill="none" stroke="#0b223d" stroke-width="3" stroke-linejoin="round">
+ <rect x="23" y="16" width="74" height="54" rx="5" fill="#fef3c7"/><rect x="38" y="28" width="44" height="30" rx="5" fill="#fde68a" stroke="#f97316"/>
+ <circle cx="60" cy="43" r="10" fill="#dc2626" stroke="#991b1b"/><path d="M56 37h8M60 37v12" stroke="white" stroke-width="2"/>
+</g>
+</svg>

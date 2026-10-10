@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="84" viewBox="0 0 120 84" role="img" aria-label="Smart transmitter">
+  <g fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="60" cy="38" r="29" fill="#eef5ff"/><rect x="42" y="27" width="36" height="21" rx="4" fill="#dbeafe" stroke="#0b223d" stroke-width="2"/>
+  <path d="M47 39h8l4-8 5 16 4-8h7" stroke="#06b6d4" stroke-width="2.5"/><line x1="60" y1="67" x2="60" y2="80"/>
+</g>
+</svg>

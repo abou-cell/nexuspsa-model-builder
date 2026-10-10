@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="84" viewBox="0 0 120 84" role="img" aria-label="Local control panel">
+  <g fill="none" stroke="#0b223d" stroke-width="2.5" stroke-linejoin="round">
+ <rect x="20" y="17" width="80" height="50" rx="5" fill="#e2e8f0"/><circle cx="39" cy="42" r="8" fill="#22c55e"/><circle cx="60" cy="42" r="8" fill="#dc2626"/>
+ <circle cx="82" cy="42" r="8" fill="#94a3b8"/><line x1="82" y1="42" x2="87" y2="35"/>
+</g>
+</svg>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="84" viewBox="0 0 120 84" role="img" aria-label="Proximity sensor">
+  <g fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M24 31h54l13 11-13 11H24z" fill="#eef5ff"/><rect x="17" y="35" width="9" height="14" rx="2" fill="#dbeafe"/>
+  <path d="M92 33c8 4 8 14 0 18M99 28c13 7 13 21 0 28" stroke="#06b6d4"/>
+  <path d="M39 31v22M50 31v22" stroke="#0b223d" stroke-width="2"/>
+</g>
+</svg>

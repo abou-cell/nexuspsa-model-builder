@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="84" viewBox="0 0 120 84" role="img" aria-label="Maintenance test terminal">
+  <g fill="none" stroke="#0b223d" stroke-width="2.5" stroke-linejoin="round">
+ <rect x="23" y="10" width="74" height="48" rx="5" fill="#eef5ff" stroke="#2563eb"/><path d="M12 69h96l-9-11H21z" fill="#cbd5e1"/>
+ <path d="M52 23l4 3 5-1 2 5 5 2-2 5 2 5-5 2-2 5-5-1-4 3-4-3-5 1-2-5-5-2 2-5-2-5 5-2 2-5 5 1z" fill="#dbeafe" stroke="#06b6d4"/>
+ <circle cx="52" cy="37" r="5" fill="#2563eb" stroke="none"/>
+</g>
+</svg>

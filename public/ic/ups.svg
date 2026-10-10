@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="84" viewBox="0 0 120 84" role="img" aria-label="UPS battery backed supply">
+  <g fill="none" stroke="#0b223d" stroke-width="2.5" stroke-linejoin="round">
+ <rect x="27" y="8" width="66" height="68" rx="5" fill="#e2e8f0"/><path d="M42 48h36v16H42z" fill="#dbeafe" stroke="#2563eb"/>
+ <path d="M47 56h12M62 52v8M72 52v8" stroke="#2563eb"/><circle cx="42" cy="20" r="3" fill="#16a34a" stroke="none"/>
+ <text x="60" y="36" fill="#0b223d" stroke="none" font-size="12" font-weight="800" font-family="Arial" text-anchor="middle">UPS</text>
+</g>
+</svg>

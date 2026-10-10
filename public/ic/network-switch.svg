@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="84" viewBox="0 0 120 84" role="img" aria-label="Industrial network switch">
+  <g fill="none" stroke="#0b223d" stroke-width="2.5" stroke-linejoin="round">
+ <rect x="14" y="23" width="92" height="38" rx="6" fill="#334155"/>
+ <g fill="#e2e8f0" stroke="none"><rect x="25" y="34" width="6" height="6"/><rect x="34" y="34" width="6" height="6"/><rect x="43" y="34" width="6" height="6"/><rect x="52" y="34" width="6" height="6"/><rect x="61" y="34" width="6" height="6"/><rect x="70" y="34" width="6" height="6"/><rect x="79" y="34" width="6" height="6"/><rect x="88" y="34" width="6" height="6"/></g>
+ <circle cx="94" cy="42" r="3" fill="#16a34a" stroke="none"/>
+</g>
+</svg>

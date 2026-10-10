@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="84" viewBox="0 0 120 84" role="img" aria-label="Historian server">
+  <g fill="none" stroke="#0b223d" stroke-width="2.5" stroke-linejoin="round">
+ <rect x="30" y="8" width="60" height="68" rx="5" fill="#e2e8f0"/>
+ <rect x="37" y="15" width="46" height="12" rx="2" fill="#eef5ff" stroke="#2563eb"/><rect x="37" y="31" width="46" height="12" rx="2" fill="#eef5ff" stroke="#2563eb"/><rect x="37" y="47" width="46" height="12" rx="2" fill="#eef5ff" stroke="#2563eb"/>
+ <g fill="#16a34a" stroke="none"><circle cx="76" cy="21" r="2.5"/><circle cx="76" cy="37" r="2.5"/><circle cx="76" cy="53" r="2.5"/></g>
+</g>
+</svg>

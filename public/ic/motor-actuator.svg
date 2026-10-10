@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="84" viewBox="0 0 120 84" role="img" aria-label="Electric motor actuator">
+  <g fill="none" stroke="#2563eb" stroke-width="3" stroke-linejoin="round">
+ <rect x="34" y="21" width="52" height="35" rx="8" fill="#dbeafe"/><rect x="45" y="13" width="30" height="9" rx="2" fill="#eef5ff"/>
+ <line x1="20" y1="39" x2="34" y2="39"/><line x1="86" y1="39" x2="101" y2="39"/><circle cx="26" cy="39" r="8" fill="#eef5ff"/>
+ <path d="M50 39h20M60 29v20" stroke="#0b223d" stroke-width="2.5"/>
+</g>
+</svg>

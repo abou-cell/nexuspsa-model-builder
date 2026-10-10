@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="84" viewBox="0 0 120 84" role="img" aria-label="Fiber Ethernet communication">
+  <g fill="none" stroke="#06b6d4" stroke-width="3" stroke-linecap="round">
+ <rect x="10" y="35" width="12" height="12" rx="2" fill="#dbeafe" stroke="#2563eb"/><rect x="98" y="35" width="12" height="12" rx="2" fill="#dbeafe" stroke="#2563eb"/>
+ <line x1="22" y1="41" x2="98" y2="41" stroke-dasharray="5 4"/>
+</g>
+</svg>

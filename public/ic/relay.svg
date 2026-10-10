@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="84" viewBox="0 0 120 84" role="img" aria-label="Interposing relay">
+  <g fill="none" stroke="#2563eb" stroke-width="3" stroke-linejoin="round">
+ <line x1="5" y1="42" x2="25" y2="42"/><rect x="25" y="14" width="70" height="56" rx="4" fill="#eef5ff"/>
+ <path d="M45 27v30M45 42h14l10-10M69 32v25" stroke="#0b223d" stroke-width="2.5"/><line x1="95" y1="42" x2="115" y2="42"/>
+</g>
+</svg>

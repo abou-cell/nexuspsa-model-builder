@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="84" viewBox="0 0 120 84" role="img" aria-label="Alarm annunciator panel">
+  <g stroke="#0b223d" stroke-width="2.5" stroke-linejoin="round">
+ <rect x="20" y="12" width="80" height="60" rx="5" fill="#e2e8f0"/>
+ <g><rect x="29" y="22" width="17" height="12" fill="#dc2626"/><rect x="52" y="22" width="17" height="12" fill="#f59e0b"/><rect x="75" y="22" width="17" height="12" fill="#f97316"/>
+ <rect x="29" y="40" width="17" height="12" fill="#f59e0b"/><rect x="52" y="40" width="17" height="12" fill="#dc2626"/><rect x="75" y="40" width="17" height="12" fill="#f59e0b"/></g>
+</g>
+</svg>

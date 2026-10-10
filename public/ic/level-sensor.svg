@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="84" viewBox="0 0 120 84" role="img" aria-label="Level sensor">
+  <g fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="35" y="12" width="50" height="60" rx="10" fill="#eef5ff"/><path d="M38 51h44" stroke="#06b6d4" stroke-width="5"/>
+  <line x1="60" y1="18" x2="60" y2="49" stroke="#0b223d" stroke-width="3"/><circle cx="60" cy="49" r="4" fill="#2563eb"/>
+  <rect x="52" y="5" width="16" height="9" rx="2" fill="#dbeafe"/>
+</g>
+</svg>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="84" viewBox="0 0 120 84" role="img" aria-label="HMI terminal">
+  <g fill="none" stroke="#2563eb" stroke-width="3" stroke-linejoin="round">
+ <rect x="18" y="8" width="84" height="55" rx="5" fill="#eef5ff"/><rect x="25" y="15" width="70" height="41" fill="white"/>
+ <path d="M36 43V27h16v8h16v-9h14v18H68v-8H52v7z" stroke="#06b6d4" stroke-width="2.5"/>
+ <path d="M51 64h18v8H51zM39 76h42" stroke="#0b223d"/>
+</g>
+</svg>

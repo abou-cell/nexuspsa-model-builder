@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="84" viewBox="0 0 120 84" role="img" aria-label="Junction marshalling cabinet">
+  <g fill="none" stroke="#0b223d" stroke-width="2.5" stroke-linejoin="round">
+ <rect x="22" y="10" width="76" height="64" rx="4" fill="#e2e8f0"/><path d="M60 10v64" stroke="#2563eb"/>
+ <path d="M34 22h14M34 30h14M34 38h14M34 46h14M34 54h14M72 22h14M72 30h14M72 38h14M72 46h14M72 54h14" stroke="#2563eb" stroke-width="2"/>
+</g>
+</svg>

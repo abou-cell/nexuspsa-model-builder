@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="84" viewBox="0 0 120 84" role="img" aria-label="Engineering workstation">
+  <g fill="none" stroke="#2563eb" stroke-width="3" stroke-linejoin="round">
+ <rect x="16" y="8" width="68" height="48" rx="4" fill="#eef5ff"/><rect x="23" y="15" width="54" height="34" fill="white"/>
+ <path d="M49 22l4 3 5-1 2 5 5 2-2 5 2 5-5 2-2 5-5-1-4 3-4-3-5 1-2-5-5-2 2-5-2-5 5-2 2-5 5 1z" fill="#dbeafe" stroke="#06b6d4" stroke-width="2"/>
+ <circle cx="49" cy="36" r="5" fill="#2563eb" stroke="none"/><path d="M36 58h28M43 58v7M57 58v7M34 66h32" stroke="#0b223d" stroke-width="2"/>
+ <rect x="91" y="18" width="17" height="45" rx="3" fill="#dbeafe"/><circle cx="99.5" cy="54" r="2" fill="#16a34a" stroke="none"/>
+</g>
+</svg>
