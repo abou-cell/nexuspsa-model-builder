@@ -4,13 +4,15 @@ export interface ApprovedPidSymbolOptions { palette?: boolean; }
 interface PortSpec { id: string; spot: go.Spot; from: boolean; to: boolean; stroke?: string; }
 interface PictureSymbolSpec { category: string; source: string; width: number; height: number; rotatable?: boolean; ports: PortSpec[]; }
 
+/**
+ * Hydraulic canvas rendering uses fixed GoJS display boxes, matching the
+ * Electrical / HVAC / I&C workspaces. The SVG masters remain unchanged; only
+ * their presentation size is normalized so all domains have comparable visual
+ * weight and readable captions.
+ */
 export function installApprovedPidSymbols(target: go.Diagram | go.Palette, options: ApprovedPidSymbolOptions = {}): void {
   const $ = go.GraphObject.make;
   const palette = options.palette ?? false;
-
-  // Keep SVG master geometry unchanged. Canvas size remains unchanged while
-  // palette symbols are displayed 20% larger than the previous palette size.
-  const k = palette ? 0.432 : 0.78;
 
   const hydraulic = '#1647ff';
   const electrical = '#0f172a';
@@ -26,11 +28,11 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
 
   const makePort = (spec: PortSpec): go.Shape => $(go.Shape, 'Circle', {
     alignment: spec.spot,
-    width: 6 * k,
-    height: 6 * k,
+    width: palette ? 3 : 5,
+    height: palette ? 3 : 5,
     fill: '#ffffff',
     stroke: spec.stroke ?? hydraulic,
-    strokeWidth: 1.0,
+    strokeWidth: 0.9,
     opacity: 0,
     portId: spec.id,
     fromLinkable: !palette && spec.from,
@@ -41,20 +43,53 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
   });
 
   const makeCaption = (): go.TextBlock => $(go.TextBlock, {
-    margin: new go.Margin(palette ? 2 : 3 * k, 0, 0, 0),
-    font: `${palette ? 7.2 : 8.2}px Inter, sans-serif`,
+    margin: new go.Margin(palette ? 1 : 3, 0, 0, 0),
+    font: `${palette ? 6.8 : 8}px Inter, sans-serif`,
     stroke: '#172033',
     textAlign: 'center',
     editable: !palette,
-    maxSize: new go.Size(palette ? 104 : 126 * k, NaN)
+    maxSize: new go.Size(palette ? 112 : 135, NaN),
+    wrap: go.Wrap.Fit
   }, palette ? new go.Binding('text', 'type') : new go.Binding('text', 'name').makeTwoWay());
 
+  const displaySizeFor = (category: string): go.Size => {
+    let size: go.Size;
+    switch (category) {
+      case 'Motor Pump': size = new go.Size(60, 48); break;
+      case 'Check Valve': size = new go.Size(52, 31); break;
+      case 'Reheater': size = new go.Size(58, 32); break;
+      case 'KD': size = new go.Size(52, 26); break;
+      case 'Relief Valve': size = new go.Size(36, 52); break;
+      case 'Reservoir': size = new go.Size(58, 42); break;
+      case 'Diaphragm': size = new go.Size(56, 31); break;
+      case 'Manual Valve': size = new go.Size(42, 48); break;
+      case 'Tester': size = new go.Size(48, 32); break;
+      case 'Filter': size = new go.Size(48, 42); break;
+      case 'FIP': size = new go.Size(38, 48); break;
+      case 'Transfer': size = new go.Size(58, 30); break;
+      case 'Source': size = new go.Size(48, 32); break;
+      case 'Motorized Valve': size = new go.Size(46, 52); break;
+      case 'Electrical Supply Panel': size = new go.Size(48, 42); break;
+      case 'I&C': size = new go.Size(58, 42); break;
+      case 'Maintenance': size = new go.Size(46, 46); break;
+      case 'Tank': size = new go.Size(42, 56); break;
+      case 'Hydraulic Link':
+      case 'Test Link': size = new go.Size(64, 11); break;
+      default: size = new go.Size(50, 36);
+    }
+    if (!palette) return size;
+    return new go.Size(Math.max(24, Math.round(size.width * 0.66)), Math.max(14, Math.round(size.height * 0.66)));
+  };
+
   const addPictureSymbol = (spec: PictureSymbolSpec): void => {
-    const panel = $(go.Panel, 'Spot', { width: spec.width * k, height: spec.height * k });
+    const pictureSize = displaySizeFor(spec.category);
+    const panel = $(go.Panel, 'Spot', { width: pictureSize.width, height: pictureSize.height });
     panel.add($(go.Picture, spec.source, {
-      desiredSize: new go.Size(spec.width * k, spec.height * k),
+      desiredSize: pictureSize,
+      maxSize: pictureSize,
       imageStretch: go.ImageStretch.Uniform,
-      imageAlignment: go.Spot.Center
+      imageAlignment: go.Spot.Center,
+      alignment: go.Spot.Center
     }));
     for (const p of spec.ports) panel.add(makePort(p));
 
