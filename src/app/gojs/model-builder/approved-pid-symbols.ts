@@ -83,7 +83,11 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
 
   const addPictureSymbol = (spec: PictureSymbolSpec): void => {
     const pictureSize = displaySizeFor(spec.category);
-    const panel = $(go.Panel, 'Spot', { width: pictureSize.width, height: pictureSize.height });
+    const panel = $(go.Panel, 'Spot', {
+      name: 'SYMBOL_PANEL',
+      width: pictureSize.width,
+      height: pictureSize.height
+    });
     panel.add($(go.Picture, spec.source, {
       desiredSize: pictureSize,
       maxSize: pictureSize,
@@ -94,6 +98,7 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
     for (const p of spec.ports) panel.add(makePort(p));
 
     const node = $(go.Node, 'Vertical', {
+      locationObjectName: 'SYMBOL_PANEL',
       locationSpot: go.Spot.Center,
       selectionAdorned: true,
       resizable: false,
@@ -180,9 +185,15 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
     const diagram = target as go.Diagram;
     let pidEnhanced = false;
 
+    const processPortFraction = (category: string): number => {
+      if (category === 'Motor Pump') return 0.675;
+      if (category === 'Motorized Valve') return 0.70;
+      return 0.5;
+    };
+
     const stylePipe = (link: go.Link): void => {
       const instrument = link.data?.pidClass === 'instrument';
-      link.routing = go.Routing.Orthogonal;
+      link.routing = instrument ? go.Routing.Orthogonal : go.Routing.Normal;
       link.corner = 0;
       link.fromEndSegmentLength = instrument ? 8 : 0;
       link.toEndSegmentLength = instrument ? 8 : 0;
@@ -210,6 +221,13 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
       if (data) model.setDataProperty(data, 'loc', `${x} ${y}`);
     };
 
+    const setNodeOnBaseline = (model: go.GraphLinksModel, key: number, x: number, category: string, baseline: number): void => {
+      const size = displaySizeFor(category);
+      const fraction = processPortFraction(category);
+      const panelCenterY = baseline - ((fraction - 0.5) * size.height);
+      setNodePosition(model, key, x, panelCenterY);
+    };
+
     const enhancePidSample = (): void => {
       if (pidEnhanced) return;
       pidEnhanced = true;
@@ -232,15 +250,14 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
           model.addNodeData({ key: 8, name: 'PTR002VB', type: 'Manual Valve', category: 'Manual Valve', loc: '180 210', angle: 0 });
         }
 
-        // All process ports are aligned on the same y = 210 baseline.
-        setNodePosition(model, 5, 75, baseline);        // Reservoir: centre port
-        setNodePosition(model, 8, 180, baseline);       // Manual valve: centre port
-        setNodePosition(model, 1, 290, baseline - 8);   // Pump port at 67.5% of its 48 px box
-        setNodePosition(model, 2, 410, baseline);       // Check valve
-        setNodePosition(model, 3, 525, baseline - 10);  // MOV port at 70% of its 52 px box
-        setNodePosition(model, 4, 655, baseline);       // Heat exchanger/reheater
-        setNodePosition(model, 7, 790, baseline);       // Off-page return
-        setNodePosition(model, 6, 528, 88);             // Instrumentation above the train
+        setNodeOnBaseline(model, 5, 75, 'Reservoir', baseline);
+        setNodeOnBaseline(model, 8, 180, 'Manual Valve', baseline);
+        setNodeOnBaseline(model, 1, 290, 'Motor Pump', baseline);
+        setNodeOnBaseline(model, 2, 410, 'Check Valve', baseline);
+        setNodeOnBaseline(model, 3, 525, 'Motorized Valve', baseline);
+        setNodeOnBaseline(model, 4, 655, 'Reheater', baseline);
+        setNodeOnBaseline(model, 7, 790, 'Transfer', baseline);
+        setNodePosition(model, 6, 525, 88);
 
         rebuildLinks(model, [
           { from: 5, to: 8, fromPort: 'OUT', toPort: 'IN', pidClass: 'pipe' },
@@ -252,13 +269,13 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
           { from: 3, to: 6, fromPort: 'CTRL', toPort: 'PROC', pidClass: 'instrument' }
         ]);
       } else if (isRri) {
-        setNodePosition(model, 5, 75, baseline);        // Tank
-        setNodePosition(model, 1, 180, baseline);       // Manual valve
-        setNodePosition(model, 2, 290, baseline - 8);   // Pump
-        setNodePosition(model, 7, 410, baseline);       // KD
-        setNodePosition(model, 3, 525, baseline - 10);  // MOV
-        setNodePosition(model, 4, 655, baseline);       // Exchanger
-        setNodePosition(model, 6, 790, baseline);       // PTR transfer
+        setNodeOnBaseline(model, 5, 75, 'Tank', baseline);
+        setNodeOnBaseline(model, 1, 180, 'Manual Valve', baseline);
+        setNodeOnBaseline(model, 2, 290, 'Motor Pump', baseline);
+        setNodeOnBaseline(model, 7, 410, 'KD', baseline);
+        setNodeOnBaseline(model, 3, 525, 'Motorized Valve', baseline);
+        setNodeOnBaseline(model, 4, 655, 'Reheater', baseline);
+        setNodeOnBaseline(model, 6, 790, 'Transfer', baseline);
 
         rebuildLinks(model, [
           { from: 5, to: 1, fromPort: 'OUT', toPort: 'IN', pidClass: 'pipe' },
@@ -269,13 +286,13 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
           { from: 4, to: 6, fromPort: 'OUT', toPort: 'BND', pidClass: 'pipe' }
         ]);
       } else if (isSec) {
-        setNodePosition(model, 5, 75, baseline);        // Ultimate heat sink
-        setNodePosition(model, 1, 205, baseline - 8);   // Pump
-        setNodePosition(model, 2, 330, baseline);       // Check valve
-        setNodePosition(model, 3, 450, baseline - 10);  // MOV
-        setNodePosition(model, 7, 575, baseline);       // Filter
-        setNodePosition(model, 4, 700, baseline);       // Exchanger
-        setNodePosition(model, 6, 835, baseline);       // RRI transfer
+        setNodeOnBaseline(model, 5, 75, 'Reservoir', baseline);
+        setNodeOnBaseline(model, 1, 205, 'Motor Pump', baseline);
+        setNodeOnBaseline(model, 2, 330, 'Check Valve', baseline);
+        setNodeOnBaseline(model, 3, 450, 'Motorized Valve', baseline);
+        setNodeOnBaseline(model, 7, 575, 'Filter', baseline);
+        setNodeOnBaseline(model, 4, 700, 'Reheater', baseline);
+        setNodeOnBaseline(model, 6, 835, 'Transfer', baseline);
 
         rebuildLinks(model, [
           { from: 5, to: 1, fromPort: 'OUT', toPort: 'IN', pidClass: 'pipe' },
