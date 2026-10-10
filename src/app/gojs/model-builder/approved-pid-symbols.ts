@@ -53,32 +53,59 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
   }, palette ? new go.Binding('text', 'type') : new go.Binding('text', 'name').makeTwoWay());
 
   const displaySizeFor = (category: string): go.Size => {
-    let size: go.Size;
-    switch (category) {
-      case 'Motor Pump': size = new go.Size(60, 48); break;
-      case 'Check Valve': size = new go.Size(52, 31); break;
-      case 'Reheater': size = new go.Size(58, 32); break;
-      case 'KD': size = new go.Size(52, 26); break;
-      case 'Relief Valve': size = new go.Size(36, 52); break;
-      case 'Reservoir': size = new go.Size(58, 42); break;
-      case 'Diaphragm': size = new go.Size(56, 31); break;
-      case 'Manual Valve': size = new go.Size(42, 48); break;
-      case 'Tester': size = new go.Size(48, 32); break;
-      case 'Filter': size = new go.Size(48, 42); break;
-      case 'FIP': size = new go.Size(38, 48); break;
-      case 'Transfer': size = new go.Size(58, 30); break;
-      case 'Source': size = new go.Size(48, 32); break;
-      case 'Motorized Valve': size = new go.Size(46, 52); break;
-      case 'Electrical Supply Panel': size = new go.Size(48, 42); break;
-      case 'I&C': size = new go.Size(58, 42); break;
-      case 'Maintenance': size = new go.Size(46, 46); break;
-      case 'Tank': size = new go.Size(42, 56); break;
-      case 'Hydraulic Link':
-      case 'Test Link': size = new go.Size(64, 11); break;
-      default: size = new go.Size(50, 36);
+    // Keep palette sizing independent from the editor. This prevents future
+    // canvas tuning from making palette symbols too large or too small.
+    if (palette) {
+      switch (category) {
+        case 'Motor Pump': return new go.Size(40, 32);
+        case 'Check Valve': return new go.Size(34, 20);
+        case 'Reheater': return new go.Size(38, 21);
+        case 'KD': return new go.Size(34, 17);
+        case 'Relief Valve': return new go.Size(24, 34);
+        case 'Reservoir': return new go.Size(38, 28);
+        case 'Diaphragm': return new go.Size(37, 20);
+        case 'Manual Valve': return new go.Size(28, 32);
+        case 'Tester': return new go.Size(32, 21);
+        case 'Filter': return new go.Size(32, 28);
+        case 'FIP': return new go.Size(25, 32);
+        case 'Transfer': return new go.Size(38, 20);
+        case 'Source': return new go.Size(32, 21);
+        case 'Motorized Valve': return new go.Size(30, 34);
+        case 'Electrical Supply Panel': return new go.Size(32, 28);
+        case 'I&C': return new go.Size(38, 28);
+        case 'Maintenance': return new go.Size(30, 30);
+        case 'Tank': return new go.Size(28, 37);
+        case 'Hydraulic Link':
+        case 'Test Link': return new go.Size(42, 14);
+        default: return new go.Size(33, 24);
+      }
     }
-    if (!palette) return size;
-    return new go.Size(Math.max(24, Math.round(size.width * 0.66)), Math.max(14, Math.round(size.height * 0.66)));
+
+    // Editor: inline hydraulic components share a common 42 px graphic
+    // height so a complete train reads as one coherent P&ID process line.
+    switch (category) {
+      case 'Motor Pump': return new go.Size(54, 42);
+      case 'Check Valve': return new go.Size(52, 42);
+      case 'Reheater': return new go.Size(58, 42);
+      case 'KD': return new go.Size(52, 42);
+      case 'Relief Valve': return new go.Size(36, 52);
+      case 'Reservoir': return new go.Size(56, 42);
+      case 'Diaphragm': return new go.Size(56, 42);
+      case 'Manual Valve': return new go.Size(40, 42);
+      case 'Tester': return new go.Size(48, 42);
+      case 'Filter': return new go.Size(46, 42);
+      case 'FIP': return new go.Size(38, 48);
+      case 'Transfer': return new go.Size(58, 42);
+      case 'Source': return new go.Size(48, 42);
+      case 'Motorized Valve': return new go.Size(40, 42);
+      case 'Electrical Supply Panel': return new go.Size(48, 42);
+      case 'I&C': return new go.Size(58, 42);
+      case 'Maintenance': return new go.Size(42, 42);
+      case 'Tank': return new go.Size(42, 48);
+      case 'Hydraulic Link':
+      case 'Test Link': return new go.Size(64, 11);
+      default: return new go.Size(50, 42);
+    }
   };
 
   const addPictureSymbol = (spec: PictureSymbolSpec): void => {
