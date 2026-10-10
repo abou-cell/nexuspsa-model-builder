@@ -43,18 +43,17 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
   });
 
   const makeCaption = (): go.TextBlock => $(go.TextBlock, {
-    margin: new go.Margin(palette ? 1 : 3, 0, 0, 0),
-    font: `${palette ? 6.8 : 8}px Inter, sans-serif`,
+    margin: new go.Margin(palette ? 1 : 4, 0, 0, 0),
+    font: `${palette ? 6.8 : 8.5}px Inter, sans-serif`,
     stroke: '#172033',
     textAlign: 'center',
     editable: !palette,
-    maxSize: new go.Size(palette ? 112 : 135, NaN),
+    maxSize: new go.Size(palette ? 112 : 145, NaN),
     wrap: go.Wrap.Fit
   }, palette ? new go.Binding('text', 'type') : new go.Binding('text', 'name').makeTwoWay());
 
   const displaySizeFor = (category: string): go.Size => {
-    // Keep palette sizing independent from the editor. This prevents future
-    // canvas tuning from making palette symbols too large or too small.
+    // Palette sizing remains independent from editor sizing.
     if (palette) {
       switch (category) {
         case 'Motor Pump': return new go.Size(40, 32);
@@ -81,30 +80,30 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
       }
     }
 
-    // Editor: inline hydraulic components share a common 42 px graphic
-    // height so a complete train reads as one coherent P&ID process line.
+    // Editor hierarchy: major process equipment is intentionally larger.
+    // Pump, heat exchanger and basin/tank are the visual anchors of the P&ID.
     switch (category) {
-      case 'Motor Pump': return new go.Size(54, 42);
-      case 'Check Valve': return new go.Size(52, 42);
-      case 'Reheater': return new go.Size(58, 42);
-      case 'KD': return new go.Size(52, 42);
-      case 'Relief Valve': return new go.Size(36, 52);
-      case 'Reservoir': return new go.Size(56, 42);
-      case 'Diaphragm': return new go.Size(56, 42);
-      case 'Manual Valve': return new go.Size(40, 42);
-      case 'Tester': return new go.Size(48, 42);
-      case 'Filter': return new go.Size(46, 42);
-      case 'FIP': return new go.Size(38, 48);
-      case 'Transfer': return new go.Size(58, 42);
-      case 'Source': return new go.Size(48, 42);
-      case 'Motorized Valve': return new go.Size(40, 42);
-      case 'Electrical Supply Panel': return new go.Size(48, 42);
-      case 'I&C': return new go.Size(58, 42);
-      case 'Maintenance': return new go.Size(42, 42);
-      case 'Tank': return new go.Size(42, 48);
+      case 'Motor Pump': return new go.Size(76, 61);
+      case 'Check Valve': return new go.Size(56, 34);
+      case 'Reheater': return new go.Size(82, 45);
+      case 'KD': return new go.Size(56, 28);
+      case 'Relief Valve': return new go.Size(38, 56);
+      case 'Reservoir': return new go.Size(82, 60);
+      case 'Diaphragm': return new go.Size(60, 33);
+      case 'Manual Valve': return new go.Size(42, 47);
+      case 'Tester': return new go.Size(52, 35);
+      case 'Filter': return new go.Size(52, 46);
+      case 'FIP': return new go.Size(40, 52);
+      case 'Transfer': return new go.Size(64, 32);
+      case 'Source': return new go.Size(54, 36);
+      case 'Motorized Valve': return new go.Size(45, 50);
+      case 'Electrical Supply Panel': return new go.Size(52, 46);
+      case 'I&C': return new go.Size(62, 45);
+      case 'Maintenance': return new go.Size(44, 44);
+      case 'Tank': return new go.Size(60, 66);
       case 'Hydraulic Link':
-      case 'Test Link': return new go.Size(64, 11);
-      default: return new go.Size(50, 42);
+      case 'Test Link': return new go.Size(68, 11);
+      default: return new go.Size(54, 38);
     }
   };
 
@@ -231,7 +230,7 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
       const path = link.path;
       if (path) {
         path.stroke = instrument ? control : hydraulic;
-        path.strokeWidth = instrument ? 1.35 : 2.15;
+        path.strokeWidth = instrument ? 1.35 : 2.2;
         path.strokeDashArray = instrument ? [5, 3] : null;
       }
       link.invalidateRoute();
@@ -271,20 +270,20 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
 
       if (isPtr) {
         if (!model.findNodeDataForKey(7)) {
-          model.addNodeData({ key: 7, name: 'SFP-RETURN', type: 'Transfer', category: 'Transfer', loc: '790 210', angle: 0 });
+          model.addNodeData({ key: 7, name: 'SFP-RETURN', type: 'Transfer', category: 'Transfer', loc: '830 210', angle: 0 });
         }
         if (!model.findNodeDataForKey(8)) {
-          model.addNodeData({ key: 8, name: 'PTR002VB', type: 'Manual Valve', category: 'Manual Valve', loc: '180 210', angle: 0 });
+          model.addNodeData({ key: 8, name: 'PTR002VB', type: 'Manual Valve', category: 'Manual Valve', loc: '190 210', angle: 0 });
         }
 
-        setNodeOnBaseline(model, 5, 75, 'Reservoir', baseline);
-        setNodeOnBaseline(model, 8, 180, 'Manual Valve', baseline);
-        setNodeOnBaseline(model, 1, 290, 'Motor Pump', baseline);
-        setNodeOnBaseline(model, 2, 410, 'Check Valve', baseline);
-        setNodeOnBaseline(model, 3, 525, 'Motorized Valve', baseline);
-        setNodeOnBaseline(model, 4, 655, 'Reheater', baseline);
-        setNodeOnBaseline(model, 7, 790, 'Transfer', baseline);
-        setNodePosition(model, 6, 525, 88);
+        setNodeOnBaseline(model, 5, 78, 'Reservoir', baseline);
+        setNodeOnBaseline(model, 8, 190, 'Manual Valve', baseline);
+        setNodeOnBaseline(model, 1, 315, 'Motor Pump', baseline);
+        setNodeOnBaseline(model, 2, 455, 'Check Valve', baseline);
+        setNodeOnBaseline(model, 3, 565, 'Motorized Valve', baseline);
+        setNodeOnBaseline(model, 4, 705, 'Reheater', baseline);
+        setNodeOnBaseline(model, 7, 840, 'Transfer', baseline);
+        setNodePosition(model, 6, 565, 82);
 
         rebuildLinks(model, [
           { from: 5, to: 8, fromPort: 'OUT', toPort: 'IN', pidClass: 'pipe' },
@@ -296,13 +295,13 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
           { from: 3, to: 6, fromPort: 'CTRL', toPort: 'PROC', pidClass: 'instrument' }
         ]);
       } else if (isRri) {
-        setNodeOnBaseline(model, 5, 75, 'Tank', baseline);
-        setNodeOnBaseline(model, 1, 180, 'Manual Valve', baseline);
-        setNodeOnBaseline(model, 2, 290, 'Motor Pump', baseline);
-        setNodeOnBaseline(model, 7, 410, 'KD', baseline);
-        setNodeOnBaseline(model, 3, 525, 'Motorized Valve', baseline);
-        setNodeOnBaseline(model, 4, 655, 'Reheater', baseline);
-        setNodeOnBaseline(model, 6, 790, 'Transfer', baseline);
+        setNodeOnBaseline(model, 5, 78, 'Tank', baseline);
+        setNodeOnBaseline(model, 1, 190, 'Manual Valve', baseline);
+        setNodeOnBaseline(model, 2, 315, 'Motor Pump', baseline);
+        setNodeOnBaseline(model, 7, 450, 'KD', baseline);
+        setNodeOnBaseline(model, 3, 560, 'Motorized Valve', baseline);
+        setNodeOnBaseline(model, 4, 700, 'Reheater', baseline);
+        setNodeOnBaseline(model, 6, 835, 'Transfer', baseline);
 
         rebuildLinks(model, [
           { from: 5, to: 1, fromPort: 'OUT', toPort: 'IN', pidClass: 'pipe' },
@@ -313,13 +312,13 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
           { from: 4, to: 6, fromPort: 'OUT', toPort: 'BND', pidClass: 'pipe' }
         ]);
       } else if (isSec) {
-        setNodeOnBaseline(model, 5, 75, 'Reservoir', baseline);
-        setNodeOnBaseline(model, 1, 205, 'Motor Pump', baseline);
-        setNodeOnBaseline(model, 2, 330, 'Check Valve', baseline);
-        setNodeOnBaseline(model, 3, 450, 'Motorized Valve', baseline);
-        setNodeOnBaseline(model, 7, 575, 'Filter', baseline);
-        setNodeOnBaseline(model, 4, 700, 'Reheater', baseline);
-        setNodeOnBaseline(model, 6, 835, 'Transfer', baseline);
+        setNodeOnBaseline(model, 5, 78, 'Reservoir', baseline);
+        setNodeOnBaseline(model, 1, 225, 'Motor Pump', baseline);
+        setNodeOnBaseline(model, 2, 370, 'Check Valve', baseline);
+        setNodeOnBaseline(model, 3, 485, 'Motorized Valve', baseline);
+        setNodeOnBaseline(model, 7, 605, 'Filter', baseline);
+        setNodeOnBaseline(model, 4, 735, 'Reheater', baseline);
+        setNodeOnBaseline(model, 6, 875, 'Transfer', baseline);
 
         rebuildLinks(model, [
           { from: 5, to: 1, fromPort: 'OUT', toPort: 'IN', pidClass: 'pipe' },
