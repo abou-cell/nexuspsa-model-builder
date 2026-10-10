@@ -184,8 +184,8 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
       const instrument = link.data?.pidClass === 'instrument';
       link.routing = go.Routing.Orthogonal;
       link.corner = 0;
-      link.fromEndSegmentLength = instrument ? 8 : 12;
-      link.toEndSegmentLength = instrument ? 8 : 12;
+      link.fromEndSegmentLength = instrument ? 8 : 0;
+      link.toEndSegmentLength = instrument ? 8 : 0;
       link.reshapable = true;
       link.adjusting = go.LinkAdjusting.End;
       link.selectionAdorned = false;
@@ -193,28 +193,16 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
       const path = link.path;
       if (path) {
         path.stroke = instrument ? control : hydraulic;
-        path.strokeWidth = instrument ? 1.35 : 2.2;
+        path.strokeWidth = instrument ? 1.35 : 2.15;
         path.strokeDashArray = instrument ? [5, 3] : null;
       }
+      link.invalidateRoute();
     };
 
-    const ensureLink = (
-      model: go.GraphLinksModel,
-      from: number,
-      to: number,
-      fromPort: string,
-      toPort: string,
-      pidClass?: string
-    ): void => {
-      const existing = (model.linkDataArray as Array<any>).some(link =>
-        link.from === from && link.to === to && link.fromPort === fromPort && link.toPort === toPort
-      );
-      if (!existing) model.addLinkData({ from, to, fromPort, toPort, ...(pidClass ? { pidClass } : {}) });
-    };
-
-    const removeDirectLink = (model: go.GraphLinksModel, from: number, to: number): void => {
-      const match = (model.linkDataArray as Array<any>).find(link => link.from === from && link.to === to);
-      if (match) model.removeLinkData(match);
+    const rebuildLinks = (model: go.GraphLinksModel, links: Array<any>): void => {
+      const existing = model.linkDataArray.slice();
+      if (existing.length) model.removeLinkDataCollection(existing);
+      model.addLinkDataCollection(links);
     };
 
     const setNodePosition = (model: go.GraphLinksModel, key: number, x: number, y: number): void => {
@@ -229,61 +217,77 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
       const model = diagram.model as go.GraphLinksModel;
       const nodeData = model.nodeDataArray as Array<any>;
       const names = nodeData.map(node => String(node.name ?? ''));
-      const isPtr = names.some(name => /^PTR/i.test(name)) || names.includes('SFP');
-      const isRri = names.some(name => /^RRI/i.test(name));
-      const isSec = names.some(name => /^SEC/i.test(name)) || names.includes('ULTIMATE-HS');
+      const isPtr = names.includes('SFP');
+      const isRri = names.includes('RRI-SOURCE');
+      const isSec = names.includes('ULTIMATE-HS');
+      const baseline = 210;
 
-      diagram.startTransaction('structure hydraulic P&ID');
+      diagram.startTransaction('align hydraulic P&ID');
 
       if (isPtr) {
         if (!model.findNodeDataForKey(7)) {
-          model.addNodeData({ key: 7, name: 'SFP-RETURN', type: 'Transfer', category: 'Transfer', loc: '735 210', angle: 0 });
+          model.addNodeData({ key: 7, name: 'SFP-RETURN', type: 'Transfer', category: 'Transfer', loc: '790 210', angle: 0 });
         }
         if (!model.findNodeDataForKey(8)) {
-          model.addNodeData({ key: 8, name: 'PTR002VB', type: 'Manual Valve', category: 'Manual Valve', loc: '165 210', angle: 0 });
+          model.addNodeData({ key: 8, name: 'PTR002VB', type: 'Manual Valve', category: 'Manual Valve', loc: '180 210', angle: 0 });
         }
 
-        removeDirectLink(model, 5, 1);
-        ensureLink(model, 5, 8, 'OUT', 'IN');
-        ensureLink(model, 8, 1, 'OUT', 'IN');
-        ensureLink(model, 4, 7, 'OUT', 'BND');
-        ensureLink(model, 3, 6, 'OUT', 'PROC', 'instrument');
+        // All process ports are aligned on the same y = 210 baseline.
+        setNodePosition(model, 5, 75, baseline);        // Reservoir: centre port
+        setNodePosition(model, 8, 180, baseline);       // Manual valve: centre port
+        setNodePosition(model, 1, 290, baseline - 8);   // Pump port at 67.5% of its 48 px box
+        setNodePosition(model, 2, 410, baseline);       // Check valve
+        setNodePosition(model, 3, 525, baseline - 10);  // MOV port at 70% of its 52 px box
+        setNodePosition(model, 4, 655, baseline);       // Heat exchanger/reheater
+        setNodePosition(model, 7, 790, baseline);       // Off-page return
+        setNodePosition(model, 6, 528, 88);             // Instrumentation above the train
 
-        setNodePosition(model, 5, 70, 210);
-        setNodePosition(model, 8, 165, 210);
-        setNodePosition(model, 1, 265, 210);
-        setNodePosition(model, 2, 375, 210);
-        setNodePosition(model, 3, 475, 210);
-        setNodePosition(model, 4, 600, 210);
-        setNodePosition(model, 7, 735, 210);
-        setNodePosition(model, 6, 475, 95);
+        rebuildLinks(model, [
+          { from: 5, to: 8, fromPort: 'OUT', toPort: 'IN', pidClass: 'pipe' },
+          { from: 8, to: 1, fromPort: 'OUT', toPort: 'IN', pidClass: 'pipe' },
+          { from: 1, to: 2, fromPort: 'OUT', toPort: 'IN', pidClass: 'pipe' },
+          { from: 2, to: 3, fromPort: 'OUT', toPort: 'IN', pidClass: 'pipe' },
+          { from: 3, to: 4, fromPort: 'OUT', toPort: 'IN', pidClass: 'pipe' },
+          { from: 4, to: 7, fromPort: 'OUT', toPort: 'BND', pidClass: 'pipe' },
+          { from: 3, to: 6, fromPort: 'CTRL', toPort: 'PROC', pidClass: 'instrument' }
+        ]);
       } else if (isRri) {
-        removeDirectLink(model, 3, 4);
-        ensureLink(model, 3, 7, 'OUT', 'IN');
-        ensureLink(model, 7, 4, 'OUT', 'IN');
+        setNodePosition(model, 5, 75, baseline);        // Tank
+        setNodePosition(model, 1, 180, baseline);       // Manual valve
+        setNodePosition(model, 2, 290, baseline - 8);   // Pump
+        setNodePosition(model, 7, 410, baseline);       // KD
+        setNodePosition(model, 3, 525, baseline - 10);  // MOV
+        setNodePosition(model, 4, 655, baseline);       // Exchanger
+        setNodePosition(model, 6, 790, baseline);       // PTR transfer
 
-        setNodePosition(model, 5, 70, 210);
-        setNodePosition(model, 1, 165, 210);
-        setNodePosition(model, 2, 265, 210);
-        setNodePosition(model, 3, 380, 210);
-        setNodePosition(model, 7, 490, 210);
-        setNodePosition(model, 4, 610, 210);
-        setNodePosition(model, 6, 745, 210);
+        rebuildLinks(model, [
+          { from: 5, to: 1, fromPort: 'OUT', toPort: 'IN', pidClass: 'pipe' },
+          { from: 1, to: 2, fromPort: 'OUT', toPort: 'IN', pidClass: 'pipe' },
+          { from: 2, to: 7, fromPort: 'OUT', toPort: 'IN', pidClass: 'pipe' },
+          { from: 7, to: 3, fromPort: 'OUT', toPort: 'IN', pidClass: 'pipe' },
+          { from: 3, to: 4, fromPort: 'OUT', toPort: 'IN', pidClass: 'pipe' },
+          { from: 4, to: 6, fromPort: 'OUT', toPort: 'BND', pidClass: 'pipe' }
+        ]);
       } else if (isSec) {
-        removeDirectLink(model, 3, 4);
-        ensureLink(model, 3, 7, 'OUT', 'IN');
-        ensureLink(model, 7, 4, 'OUT', 'IN');
+        setNodePosition(model, 5, 75, baseline);        // Ultimate heat sink
+        setNodePosition(model, 1, 205, baseline - 8);   // Pump
+        setNodePosition(model, 2, 330, baseline);       // Check valve
+        setNodePosition(model, 3, 450, baseline - 10);  // MOV
+        setNodePosition(model, 7, 575, baseline);       // Filter
+        setNodePosition(model, 4, 700, baseline);       // Exchanger
+        setNodePosition(model, 6, 835, baseline);       // RRI transfer
 
-        setNodePosition(model, 5, 70, 210);
-        setNodePosition(model, 1, 185, 210);
-        setNodePosition(model, 2, 300, 210);
-        setNodePosition(model, 3, 410, 210);
-        setNodePosition(model, 7, 525, 210);
-        setNodePosition(model, 4, 650, 210);
-        setNodePosition(model, 6, 785, 210);
+        rebuildLinks(model, [
+          { from: 5, to: 1, fromPort: 'OUT', toPort: 'IN', pidClass: 'pipe' },
+          { from: 1, to: 2, fromPort: 'OUT', toPort: 'IN', pidClass: 'pipe' },
+          { from: 2, to: 3, fromPort: 'OUT', toPort: 'IN', pidClass: 'pipe' },
+          { from: 3, to: 7, fromPort: 'OUT', toPort: 'IN', pidClass: 'pipe' },
+          { from: 7, to: 4, fromPort: 'OUT', toPort: 'IN', pidClass: 'pipe' },
+          { from: 4, to: 6, fromPort: 'OUT', toPort: 'BND', pidClass: 'pipe' }
+        ]);
       }
 
-      diagram.commitTransaction('structure hydraulic P&ID');
+      diagram.commitTransaction('align hydraulic P&ID');
 
       diagram.nodes.each(node => {
         const data = node.data as any;
