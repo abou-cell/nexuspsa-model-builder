@@ -80,31 +80,40 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
       }
     }
 
-    // Editor hierarchy: major process equipment is intentionally larger.
-    // Pump, heat exchanger and basin/tank are the visual anchors of the P&ID.
+    // Editor hierarchy: major equipment stays dominant; inline isolation and
+    // protection components are deliberately smaller and lighter.
     switch (category) {
       case 'Motor Pump': return new go.Size(76, 61);
-      case 'Check Valve': return new go.Size(56, 34);
+      case 'Check Valve': return new go.Size(42, 25);
       case 'Reheater': return new go.Size(82, 45);
-      case 'KD': return new go.Size(56, 28);
-      case 'Relief Valve': return new go.Size(38, 56);
+      case 'KD': return new go.Size(44, 22);
+      case 'Relief Valve': return new go.Size(32, 47);
       case 'Reservoir': return new go.Size(82, 60);
-      case 'Diaphragm': return new go.Size(60, 33);
-      case 'Manual Valve': return new go.Size(42, 47);
-      case 'Tester': return new go.Size(52, 35);
-      case 'Filter': return new go.Size(52, 46);
-      case 'FIP': return new go.Size(40, 52);
-      case 'Transfer': return new go.Size(64, 32);
-      case 'Source': return new go.Size(54, 36);
-      case 'Motorized Valve': return new go.Size(45, 50);
-      case 'Electrical Supply Panel': return new go.Size(52, 46);
-      case 'I&C': return new go.Size(62, 45);
-      case 'Maintenance': return new go.Size(44, 44);
+      case 'Diaphragm': return new go.Size(52, 29);
+      case 'Manual Valve': return new go.Size(32, 36);
+      case 'Tester': return new go.Size(46, 31);
+      case 'Filter': return new go.Size(38, 34);
+      case 'FIP': return new go.Size(38, 50);
+      case 'Transfer': return new go.Size(60, 30);
+      case 'Source': return new go.Size(50, 33);
+      case 'Motorized Valve': return new go.Size(34, 38);
+      case 'Electrical Supply Panel': return new go.Size(48, 42);
+      case 'I&C': return new go.Size(58, 42);
+      case 'Maintenance': return new go.Size(42, 42);
       case 'Tank': return new go.Size(60, 66);
       case 'Hydraulic Link':
       case 'Test Link': return new go.Size(68, 11);
-      default: return new go.Size(54, 38);
+      default: return new go.Size(50, 36);
     }
+  };
+
+  // The node location is anchored on the actual hydraulic process axis rather
+  // than the geometric centre of the symbol. This guarantees that pump, MOV,
+  // valves, filter and exchangers all connect to the exact same horizontal line.
+  const processPortFraction = (category: string): number => {
+    if (category === 'Motor Pump') return 0.675;
+    if (category === 'Motorized Valve') return 0.705;
+    return 0.5;
   };
 
   const addPictureSymbol = (spec: PictureSymbolSpec): void => {
@@ -122,9 +131,19 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
       alignment: go.Spot.Center
     }));
     for (const p of spec.ports) panel.add(makePort(p));
+    panel.add($(go.Shape, 'Circle', {
+      name: 'PROCESS_ANCHOR',
+      alignment: new go.Spot(0.5, processPortFraction(spec.category)),
+      width: 1,
+      height: 1,
+      fill: null,
+      stroke: null,
+      opacity: 0,
+      pickable: false
+    }));
 
     const node = $(go.Node, 'Vertical', {
-      locationObjectName: 'SYMBOL_PANEL',
+      locationObjectName: palette ? 'SYMBOL_PANEL' : 'PROCESS_ANCHOR',
       locationSpot: go.Spot.Center,
       selectionAdorned: true,
       resizable: false,
@@ -178,8 +197,8 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
     { category: 'Transfer', source: './pid/transfer.svg', width: 110, height: 55, rotatable: true, ports: [{ id: 'BND', spot: go.Spot.Left, from: true, to: true }] },
     { category: 'Source', source: './pid/source.svg', width: 90, height: 60, ports: [{ id: 'OUT', spot: go.Spot.Right, from: true, to: false }] },
     { category: 'Motorized Valve', source: './pid/motorized-valve.svg', width: 90, height: 100, rotatable: true, ports: [
-      { id: 'IN', spot: new go.Spot(0, 0.70), from: false, to: true },
-      { id: 'OUT', spot: new go.Spot(1, 0.70), from: true, to: false },
+      { id: 'IN', spot: new go.Spot(0, 0.705), from: false, to: true },
+      { id: 'OUT', spot: new go.Spot(1, 0.705), from: true, to: false },
       { id: 'PWR', spot: new go.Spot(0.43, 0), from: false, to: true, stroke: electrical },
       { id: 'CTRL', spot: new go.Spot(0.57, 0), from: false, to: true, stroke: control }
     ]},
@@ -211,12 +230,6 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
     const diagram = target as go.Diagram;
     let pidEnhanced = false;
 
-    const processPortFraction = (category: string): number => {
-      if (category === 'Motor Pump') return 0.675;
-      if (category === 'Motorized Valve') return 0.70;
-      return 0.5;
-    };
-
     const stylePipe = (link: go.Link): void => {
       const instrument = link.data?.pidClass === 'instrument';
       link.routing = instrument ? go.Routing.Orthogonal : go.Routing.Normal;
@@ -247,11 +260,10 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
       if (data) model.setDataProperty(data, 'loc', `${x} ${y}`);
     };
 
-    const setNodeOnBaseline = (model: go.GraphLinksModel, key: number, x: number, category: string, baseline: number): void => {
-      const size = displaySizeFor(category);
-      const fraction = processPortFraction(category);
-      const panelCenterY = baseline - ((fraction - 0.5) * size.height);
-      setNodePosition(model, key, x, panelCenterY);
+    const setNodeOnBaseline = (model: go.GraphLinksModel, key: number, x: number, _category: string, baseline: number): void => {
+      // loc is now the PROCESS_ANCHOR itself, so every process node stores the
+      // same y coordinate. No visual-size compensation or rounding is needed.
+      setNodePosition(model, key, x, baseline);
     };
 
     const enhancePidSample = (): void => {
@@ -270,20 +282,20 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
 
       if (isPtr) {
         if (!model.findNodeDataForKey(7)) {
-          model.addNodeData({ key: 7, name: 'SFP-RETURN', type: 'Transfer', category: 'Transfer', loc: '830 210', angle: 0 });
+          model.addNodeData({ key: 7, name: 'SFP-RETURN', type: 'Transfer', category: 'Transfer', loc: '845 210', angle: 0 });
         }
         if (!model.findNodeDataForKey(8)) {
           model.addNodeData({ key: 8, name: 'PTR002VB', type: 'Manual Valve', category: 'Manual Valve', loc: '190 210', angle: 0 });
         }
 
-        setNodeOnBaseline(model, 5, 78, 'Reservoir', baseline);
+        setNodeOnBaseline(model, 5, 80, 'Reservoir', baseline);
         setNodeOnBaseline(model, 8, 190, 'Manual Valve', baseline);
-        setNodeOnBaseline(model, 1, 315, 'Motor Pump', baseline);
+        setNodeOnBaseline(model, 1, 325, 'Motor Pump', baseline);
         setNodeOnBaseline(model, 2, 455, 'Check Valve', baseline);
-        setNodeOnBaseline(model, 3, 565, 'Motorized Valve', baseline);
+        setNodeOnBaseline(model, 3, 555, 'Motorized Valve', baseline);
         setNodeOnBaseline(model, 4, 705, 'Reheater', baseline);
-        setNodeOnBaseline(model, 7, 840, 'Transfer', baseline);
-        setNodePosition(model, 6, 565, 82);
+        setNodeOnBaseline(model, 7, 845, 'Transfer', baseline);
+        setNodePosition(model, 6, 555, 82);
 
         rebuildLinks(model, [
           { from: 5, to: 8, fromPort: 'OUT', toPort: 'IN', pidClass: 'pipe' },
@@ -295,13 +307,13 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
           { from: 3, to: 6, fromPort: 'CTRL', toPort: 'PROC', pidClass: 'instrument' }
         ]);
       } else if (isRri) {
-        setNodeOnBaseline(model, 5, 78, 'Tank', baseline);
+        setNodeOnBaseline(model, 5, 80, 'Tank', baseline);
         setNodeOnBaseline(model, 1, 190, 'Manual Valve', baseline);
-        setNodeOnBaseline(model, 2, 315, 'Motor Pump', baseline);
-        setNodeOnBaseline(model, 7, 450, 'KD', baseline);
-        setNodeOnBaseline(model, 3, 560, 'Motorized Valve', baseline);
-        setNodeOnBaseline(model, 4, 700, 'Reheater', baseline);
-        setNodeOnBaseline(model, 6, 835, 'Transfer', baseline);
+        setNodeOnBaseline(model, 2, 325, 'Motor Pump', baseline);
+        setNodeOnBaseline(model, 7, 455, 'KD', baseline);
+        setNodeOnBaseline(model, 3, 555, 'Motorized Valve', baseline);
+        setNodeOnBaseline(model, 4, 705, 'Reheater', baseline);
+        setNodeOnBaseline(model, 6, 845, 'Transfer', baseline);
 
         rebuildLinks(model, [
           { from: 5, to: 1, fromPort: 'OUT', toPort: 'IN', pidClass: 'pipe' },
@@ -312,13 +324,13 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
           { from: 4, to: 6, fromPort: 'OUT', toPort: 'BND', pidClass: 'pipe' }
         ]);
       } else if (isSec) {
-        setNodeOnBaseline(model, 5, 78, 'Reservoir', baseline);
+        setNodeOnBaseline(model, 5, 80, 'Reservoir', baseline);
         setNodeOnBaseline(model, 1, 225, 'Motor Pump', baseline);
-        setNodeOnBaseline(model, 2, 370, 'Check Valve', baseline);
-        setNodeOnBaseline(model, 3, 485, 'Motorized Valve', baseline);
-        setNodeOnBaseline(model, 7, 605, 'Filter', baseline);
-        setNodeOnBaseline(model, 4, 735, 'Reheater', baseline);
-        setNodeOnBaseline(model, 6, 875, 'Transfer', baseline);
+        setNodeOnBaseline(model, 2, 365, 'Check Valve', baseline);
+        setNodeOnBaseline(model, 3, 470, 'Motorized Valve', baseline);
+        setNodeOnBaseline(model, 7, 575, 'Filter', baseline);
+        setNodeOnBaseline(model, 4, 720, 'Reheater', baseline);
+        setNodeOnBaseline(model, 6, 865, 'Transfer', baseline);
 
         rebuildLinks(model, [
           { from: 5, to: 1, fromPort: 'OUT', toPort: 'IN', pidClass: 'pipe' },
