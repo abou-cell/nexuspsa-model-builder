@@ -128,6 +128,8 @@ export function createIcDiagram(host: HTMLDivElement, systemId: IcSystemId = 'IC
   });
 
   diagram.toolManager.mouseWheelBehavior = go.WheelMode.Zoom;
+  diagram.toolManager.linkingTool.portGravity = 22;
+  diagram.toolManager.relinkingTool.portGravity = 22;
   diagram.toolManager.dragSelectingTool.isEnabled = true;
   diagram.toolManager.dragSelectingTool.isPartialInclusion = true;
   diagram.toolManager.dragSelectingTool.box = $(go.Part,
@@ -174,6 +176,15 @@ export function createIcDiagram(host: HTMLDivElement, systemId: IcSystemId = 'IC
     )
   );
 
+  const signalColor = (kind: string | undefined): string =>
+    kind === 'safety' ? '#dc2626' :
+    kind === 'power' ? '#64748b' :
+    kind === 'network' ? '#2563eb' : '#0f766e';
+  const setSignalWidth = (link: go.Link, width: number): void => {
+    const line = link.findObject('LINK_LINE') as go.Shape | null;
+    if (line) line.strokeWidth = width;
+  };
+
   diagram.linkTemplate = $(go.Link,
     {
       routing: go.Routing.Orthogonal,
@@ -182,27 +193,41 @@ export function createIcDiagram(host: HTMLDivElement, systemId: IcSystemId = 'IC
       relinkableTo: true,
       reshapable: true,
       selectionAdorned: true,
-      adjusting: go.LinkAdjusting.End
+      adjusting: go.LinkAdjusting.End,
+      cursor: 'pointer',
+      mouseEnter: (_e: go.InputEvent, obj: go.GraphObject) => {
+        const link = obj.part as go.Link;
+        if (link && !link.isSelected) setSignalWidth(link, 2.3);
+      },
+      mouseLeave: (_e: go.InputEvent, obj: go.GraphObject) => {
+        const link = obj.part as go.Link;
+        if (link) setSignalWidth(link, link.isSelected ? 2.8 : 1.6);
+      },
+      selectionChanged: (part: go.Part) => {
+        const link = part as go.Link;
+        setSignalWidth(link, link.isSelected ? 2.8 : 1.6);
+      }
     },
-    $(go.Shape, { strokeWidth: 1.6 },
-      new go.Binding('stroke', 'kind', kind =>
-        kind === 'safety' ? '#dc2626' :
-        kind === 'power' ? '#64748b' :
-        kind === 'network' ? '#2563eb' : '#0f766e')
+    $(go.Shape, {
+      name: 'LINK_HIT',
+      isPanelMain: true,
+      stroke: 'rgba(15,23,42,0.001)',
+      strokeWidth: 12
+    }),
+    $(go.Shape, {
+        name: 'LINK_LINE',
+        isPanelMain: true,
+        strokeWidth: 1.6
+      },
+      new go.Binding('stroke', 'kind', signalColor)
     ),
     $(go.Shape, {
-      toArrow: 'Standard',
-      scale: 0.7,
-      strokeWidth: 1.3
-    },
-      new go.Binding('stroke', 'kind', kind =>
-        kind === 'safety' ? '#dc2626' :
-        kind === 'power' ? '#64748b' :
-        kind === 'network' ? '#2563eb' : '#0f766e'),
-      new go.Binding('fill', 'kind', kind =>
-        kind === 'safety' ? '#dc2626' :
-        kind === 'power' ? '#64748b' :
-        kind === 'network' ? '#2563eb' : '#0f766e')
+        toArrow: 'Standard',
+        scale: 0.7,
+        strokeWidth: 1.3
+      },
+      new go.Binding('stroke', 'kind', signalColor),
+      new go.Binding('fill', 'kind', signalColor)
     )
   );
 
