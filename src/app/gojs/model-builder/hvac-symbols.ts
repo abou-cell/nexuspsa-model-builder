@@ -9,6 +9,30 @@ interface PortSpec {
 }
 
 function portsFor(category: string): PortSpec[] {
+  if (category === 'Air Source') return [{ id: 'OUT', spot: go.Spot.Right, from: true, to: false }];
+  if (category === 'Air Node') {
+    return [
+      { id: 'LEFT', spot: go.Spot.Left, from: true, to: true },
+      { id: 'RIGHT', spot: go.Spot.Right, from: true, to: true },
+      { id: 'TOP', spot: go.Spot.Top, from: true, to: true },
+      { id: 'BOTTOM', spot: go.Spot.Bottom, from: true, to: true }
+    ];
+  }
+  if (category === 'Zone Consumer') return [{ id: 'IN', spot: go.Spot.Left, from: false, to: true }];
+  if (category === 'Airflow Tester' || category === 'Delta-P Tester') return [{ id: 'TEST', spot: go.Spot.Left, from: true, to: true }];
+  if (category === 'HVAC Tester Link') {
+    return [
+      { id: 'A', spot: go.Spot.Left, from: true, to: true },
+      { id: 'B', spot: go.Spot.Right, from: true, to: true }
+    ];
+  }
+  if (category === 'HVAC Flag') return [{ id: 'COND', spot: go.Spot.Right, from: true, to: false }];
+  if (category === 'HVAC Boundary' || category === 'HVAC Off-page') {
+    return [
+      { id: 'IN', spot: go.Spot.Left, from: true, to: true },
+      { id: 'OUT', spot: go.Spot.Right, from: true, to: true }
+    ];
+  }
   if (/Air Intake/.test(category)) {
     return [{ id: 'OUT', spot: go.Spot.Right, from: true, to: false }];
   }
