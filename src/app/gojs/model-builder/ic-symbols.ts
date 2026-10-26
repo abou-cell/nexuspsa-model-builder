@@ -66,13 +66,18 @@ export function installIcSymbols(target: go.Diagram | go.Palette, palette = fals
   const $ = go.GraphObject.make;
   const k = palette ? 0.46 : 0.66;
 
+  const setPortsVisible = (node: go.Node | null, visible: boolean): void => {
+    if (!node || palette) return;
+    node.ports.each(port => { port.opacity = visible ? 1 : 0; });
+  };
+
   const makePort = (spec: PortSpec): go.Shape => $(go.Shape, 'Circle', {
     alignment: spec.spot,
-    width: Math.max(4, 6 * k),
-    height: Math.max(4, 6 * k),
+    width: palette ? 4 : 7,
+    height: palette ? 4 : 7,
     fill: '#ffffff',
     stroke: '#2563eb',
-    strokeWidth: 1,
+    strokeWidth: palette ? 1 : 1.15,
     opacity: 0,
     portId: spec.id,
     fromLinkable: !palette && spec.from,
@@ -113,7 +118,13 @@ export function installIcSymbols(target: go.Diagram | go.Palette, palette = fals
           selectionAdorned: true,
           resizable: false,
           rotatable: !palette,
-          cursor: palette ? 'grab' : 'move'
+          cursor: palette ? 'grab' : 'move',
+          selectionChanged: (part: go.Part) => setPortsVisible(part as go.Node, part.isSelected),
+          mouseEnter: (_e: go.InputEvent, obj: go.GraphObject) => setPortsVisible(obj.part as go.Node, true),
+          mouseLeave: (_e: go.InputEvent, obj: go.GraphObject) => {
+            const node = obj.part as go.Node;
+            setPortsVisible(node, node.isSelected);
+          }
         },
         new go.Binding('location', 'loc', go.Point.parse).makeTwoWay(go.Point.stringify),
         new go.Binding('angle', 'angle').makeTwoWay(),
