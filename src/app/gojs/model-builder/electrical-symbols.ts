@@ -84,13 +84,18 @@ function displaySizeFor(symbol: ElectricalSymbolDefinition, palette: boolean): g
 export function installElectricalSymbols(target: go.Diagram | go.Palette, palette = false): void {
   const $ = go.GraphObject.make;
 
+  const setPortsVisible = (node: go.Node | null, visible: boolean): void => {
+    if (!node || palette) return;
+    node.ports.each(port => { port.opacity = visible ? 1 : 0; });
+  };
+
   const makePort = (spec: PortSpec): go.Shape => $(go.Shape, 'Circle', {
     alignment: spec.spot,
-    width: palette ? 3 : 5,
-    height: palette ? 3 : 5,
+    width: palette ? 3 : 7,
+    height: palette ? 3 : 7,
     fill: '#ffffff',
     stroke: '#1647ff',
-    strokeWidth: 0.9,
+    strokeWidth: palette ? 0.9 : 1.15,
     opacity: 0,
     portId: spec.id,
     fromLinkable: !palette && spec.from,
@@ -122,7 +127,13 @@ export function installElectricalSymbols(target: go.Diagram | go.Palette, palett
           selectionAdorned: true,
           resizable: false,
           rotatable: !palette,
-          cursor: palette ? 'grab' : 'move'
+          cursor: palette ? 'grab' : 'move',
+          selectionChanged: (part: go.Part) => setPortsVisible(part as go.Node, part.isSelected),
+          mouseEnter: (_e: go.InputEvent, obj: go.GraphObject) => setPortsVisible(obj.part as go.Node, true),
+          mouseLeave: (_e: go.InputEvent, obj: go.GraphObject) => {
+            const node = obj.part as go.Node;
+            setPortsVisible(node, node.isSelected);
+          }
         },
         new go.Binding('location', 'loc', go.Point.parse).makeTwoWay(go.Point.stringify),
         new go.Binding('angle', 'angle').makeTwoWay(),
