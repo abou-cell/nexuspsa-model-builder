@@ -269,8 +269,6 @@ export function createModelBuilderDiagram(
   });
 
   diagram.toolManager.mouseWheelBehavior = go.WheelMode.Zoom;
-  diagram.toolManager.linkingTool.portGravity = 22;
-  diagram.toolManager.relinkingTool.portGravity = 22;
   diagram.toolManager.dragSelectingTool.isEnabled = true;
   diagram.toolManager.dragSelectingTool.isPartialInclusion = true;
   diagram.toolManager.dragSelectingTool.box = $(go.Part,
