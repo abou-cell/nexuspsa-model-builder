@@ -11,6 +11,8 @@ interface ElectricalPaletteNodeData {
   description: string;
   rating: string;
   source: string;
+  reliabilityRole?: string;
+  testCriterion?: string;
 }
 
 const ITEMS: ElectricalPaletteNodeData[] = ELECTRICAL_SYMBOLS.map((symbol, index) => ({
@@ -22,7 +24,9 @@ const ITEMS: ElectricalPaletteNodeData[] = ELECTRICAL_SYMBOLS.map((symbol, index
   groupLabel: symbol.groupLabel,
   description: symbol.description,
   rating: symbol.rating,
-  source: symbol.source
+  source: symbol.source,
+  reliabilityRole: symbol.reliabilityRole,
+  testCriterion: symbol.testCriterion
 }));
 
 export function createElectricalPalette(host: HTMLDivElement): go.Palette {
@@ -46,7 +50,7 @@ export function createElectricalPalette(host: HTMLDivElement): go.Palette {
       alignment: go.GridAlignment.Position,
       sorting: go.GridSorting.Ascending,
       comparer: (a: go.Part, b: go.Part) => {
-        const order = ['Sources', 'Transformers', 'Protection & Switching', 'Conversion', 'Storage', 'Distribution'];
+        const order = ['Reliability Structure', 'Sources', 'Transformers', 'Protection & Switching', 'Conversion', 'Storage', 'Distribution'];
         const ga = order.indexOf(a.data?.groupLabel ?? '');
         const gb = order.indexOf(b.data?.groupLabel ?? '');
         if (ga !== gb) return ga - gb;

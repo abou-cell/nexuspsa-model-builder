@@ -9,6 +9,30 @@ interface PortSpec {
 }
 
 function portsFor(category: string): PortSpec[] {
+  if (category === 'Electrical Source') return [{ id: 'OUT', spot: go.Spot.Right, from: true, to: false }];
+  if (category === 'Electrical Node') {
+    return [
+      { id: 'LEFT', spot: go.Spot.Left, from: true, to: true },
+      { id: 'RIGHT', spot: go.Spot.Right, from: true, to: true },
+      { id: 'TOP', spot: go.Spot.Top, from: true, to: true },
+      { id: 'BOTTOM', spot: go.Spot.Bottom, from: true, to: true }
+    ];
+  }
+  if (category === 'Electrical Load') return [{ id: 'IN', spot: go.Spot.Left, from: false, to: true }];
+  if (category === 'Voltage Tester') return [{ id: 'TEST', spot: go.Spot.Left, from: true, to: true }];
+  if (category === 'Electrical Tester Link') {
+    return [
+      { id: 'A', spot: go.Spot.Left, from: true, to: true },
+      { id: 'B', spot: go.Spot.Right, from: true, to: true }
+    ];
+  }
+  if (category === 'Electrical Flag') return [{ id: 'COND', spot: go.Spot.Right, from: true, to: false }];
+  if (category === 'Electrical Boundary' || category === 'Electrical Off-page' || category === 'Point of Interest') {
+    return [
+      { id: 'IN', spot: go.Spot.Left, from: true, to: true },
+      { id: 'OUT', spot: go.Spot.Right, from: true, to: true }
+    ];
+  }
   if (/Generator|GES/.test(category)) {
     return [{ id: 'OUT', spot: go.Spot.Right, from: true, to: false }];
   }
@@ -46,6 +70,7 @@ function displaySizeFor(symbol: ElectricalSymbolDefinition, palette: boolean): g
     return new go.Size(36, 26);
   }
 
+  if (/Electrical Source|Electrical Load|Voltage Tester|Electrical Node|Electrical Tester Link|Electrical Flag|Electrical Boundary|Electrical Off-page|Point of Interest/.test(symbol.category)) return new go.Size(48, 36);
   if (/TA Transformer/.test(symbol.category)) return new go.Size(58, 46);
   if (/Transformer/.test(symbol.category)) return new go.Size(54, 44);
   if (/GES/.test(symbol.category)) return new go.Size(64, 42);

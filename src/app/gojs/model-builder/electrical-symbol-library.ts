@@ -4,13 +4,24 @@ export interface ElectricalSymbolDefinition {
   description: string;
   rating: string;
   kbClass: string;
-  groupLabel: 'Sources' | 'Protection & Switching' | 'Transformers' | 'Conversion' | 'Storage' | 'Distribution';
+  groupLabel: 'Reliability Structure' | 'Sources' | 'Protection & Switching' | 'Transformers' | 'Conversion' | 'Storage' | 'Distribution';
   width: number;
   height: number;
   source: string;
+  reliabilityRole?: string;
+  testCriterion?: string;
 }
 
 export const ELECTRICAL_SYMBOLS: readonly ElectricalSymbolDefinition[] = [
+  { category: 'Electrical Source', name: 'Electrical Source', description: 'Generic functional source used for reliability tracing', rating: 'Source boundary', kbClass: 'ELECTRICAL.SOURCE', groupLabel: 'Reliability Structure', width: 92, height: 64, source: './reliability/source.svg?v=1', reliabilityRole: 'SOURCE' },
+  { category: 'Electrical Node', name: 'Electrical Node / Junction', description: 'Topology node for branching or merging electrical paths', rating: 'Topology node', kbClass: 'ELECTRICAL.NODE', groupLabel: 'Reliability Structure', width: 90, height: 54, source: './reliability/node.svg?v=1', reliabilityRole: 'NODE' },
+  { category: 'Electrical Load', name: 'Electrical Load / Consumer', description: 'Terminal load requiring an available electrical supply', rating: 'Functional load', kbClass: 'ELECTRICAL.LOAD', groupLabel: 'Reliability Structure', width: 92, height: 64, source: './reliability/load.svg?v=1', reliabilityRole: 'TARGET' },
+  { category: 'Voltage Tester', name: 'Voltage Tester', description: 'Reliability test point for voltage availability', rating: 'Test: voltage available', kbClass: 'ELECTRICAL.VOLTAGE_TESTER', groupLabel: 'Reliability Structure', width: 82, height: 68, source: './reliability/tester.svg?v=1', reliabilityRole: 'TESTER', testCriterion: 'VOLTAGE_AVAILABLE' },
+  { category: 'Electrical Tester Link', name: 'Tester Link', description: 'Logical connection between an electrical point and its Tester', rating: 'Reliability relation', kbClass: 'ELECTRICAL.TEST_LINK', groupLabel: 'Reliability Structure', width: 96, height: 40, source: './reliability/test-link.svg?v=1', reliabilityRole: 'TEST_LINK' },
+  { category: 'Electrical Flag', name: 'Flag / Plant Condition', description: 'External PSA state, configuration or mission condition', rating: 'Boolean condition', kbClass: 'ELECTRICAL.FLAG', groupLabel: 'Reliability Structure', width: 72, height: 72, source: './reliability/flag.svg?v=1', reliabilityRole: 'FLAG' },
+  { category: 'Electrical Boundary', name: 'System Boundary', description: 'Explicit boundary between electrical systems or model scopes', rating: 'Boundary', kbClass: 'ELECTRICAL.BOUNDARY', groupLabel: 'Reliability Structure', width: 70, height: 88, source: './reliability/boundary.svg?v=1', reliabilityRole: 'BOUNDARY' },
+  { category: 'Electrical Off-page', name: 'Off-page Connector', description: 'Continuation to another single-line diagram or system view', rating: 'Drawing reference', kbClass: 'ELECTRICAL.OFF_PAGE', groupLabel: 'Reliability Structure', width: 92, height: 60, source: './reliability/off-page.svg?v=1', reliabilityRole: 'OFF_PAGE' },
+  { category: 'Point of Interest', name: 'Point of Interest (POI)', description: 'Electrical point whose loss of voltage defines a reliability criterion', rating: 'POI · voltage criterion', kbClass: 'ELECTRICAL.POINT_OF_INTEREST', groupLabel: 'Reliability Structure', width: 78, height: 78, source: './reliability/poi.svg?v=1', reliabilityRole: 'FUNCTION_POINT', testCriterion: 'VOLTAGE_AVAILABLE' },
   { category: 'Unit Generator', name: 'Unit Generator / Alternator', description: 'Main synchronous unit alternator', rating: '24 kV · 1300 MVA · 50 Hz', kbClass: 'ELECTRICAL.UNIT_GENERATOR', groupLabel: 'Sources', width: 100, height: 72, source: './electrical/unit-generator.svg?v=2' },
   { category: 'Main GES / GES-M / GES-DEC-A', name: 'Main GES / GES-M / GES-DEC-A', description: 'Emergency diesel generator set', rating: '10 kV · 6.3 MVA · 50 Hz', kbClass: 'ELECTRICAL.GES_MAIN', groupLabel: 'Sources', width: 112, height: 72, source: './electrical/ges.svg?v=2' },
   { category: 'GES DEC-B', name: 'GES DEC-B', description: 'Diversified emergency diesel generator', rating: '400 V · 1.5 MVA · 50 Hz', kbClass: 'ELECTRICAL.GES_DEC_B', groupLabel: 'Sources', width: 112, height: 72, source: './electrical/ges.svg?v=2' },
