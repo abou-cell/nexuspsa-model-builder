@@ -28,11 +28,11 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
 
   const makePort = (spec: PortSpec): go.Shape => $(go.Shape, 'Circle', {
     alignment: spec.spot,
-    width: palette ? 3 : 5,
-    height: palette ? 3 : 5,
+    width: palette ? 3 : 8,
+    height: palette ? 3 : 8,
     fill: '#ffffff',
     stroke: spec.stroke ?? hydraulic,
-    strokeWidth: 0.9,
+    strokeWidth: palette ? 0.9 : 1.25,
     opacity: 0,
     portId: spec.id,
     fromLinkable: !palette && spec.from,
@@ -264,20 +264,28 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
 
     const stylePipe = (link: go.Link): void => {
       const instrument = link.data?.pidClass === 'instrument';
-      link.routing = instrument ? go.Routing.Orthogonal : go.Routing.Normal;
+      // Hydraulic links now use the same interactive orthogonal behaviour as
+      // HVAC: selectable, relinkable and reshapeable, with a generous hit area.
+      link.routing = go.Routing.Orthogonal;
       link.corner = 0;
-      link.fromEndSegmentLength = instrument ? 8 : 0;
-      link.toEndSegmentLength = instrument ? 8 : 0;
+      link.fromEndSegmentLength = instrument ? 8 : 10;
+      link.toEndSegmentLength = instrument ? 8 : 10;
+      link.relinkableFrom = true;
+      link.relinkableTo = true;
       link.reshapable = true;
       link.adjusting = go.LinkAdjusting.End;
-      link.selectionAdorned = false;
+      link.selectionAdorned = true;
+      link.cursor = 'pointer';
 
-      const path = link.path;
+      const path = (link.findObject('LINK_LINE') as go.Shape | null) || link.path;
       if (path) {
         path.stroke = instrument ? control : hydraulic;
         path.strokeWidth = instrument ? 1.35 : 2.2;
         path.strokeDashArray = instrument ? [5, 3] : null;
       }
+
+      const hit = link.findObject('LINK_HIT') as go.Shape | null;
+      if (hit) hit.strokeWidth = 12;
       link.invalidateRoute();
     };
 
