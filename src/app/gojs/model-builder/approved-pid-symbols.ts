@@ -65,6 +65,12 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
         case 'Diaphragm': return new go.Size(37, 20);
         case 'Manual Valve': return new go.Size(28, 32);
         case 'Tester': return new go.Size(32, 21);
+        case 'Hydraulic Node / Junction': return new go.Size(30, 20);
+        case 'Hydraulic Target / Sink': return new go.Size(32, 24);
+        case 'Flag': return new go.Size(28, 28);
+        case 'Boundary': return new go.Size(24, 34);
+        case 'Off-page Connector': return new go.Size(34, 24);
+        case 'Function Point': return new go.Size(30, 30);
         case 'Filter': return new go.Size(32, 28);
         case 'FIP': return new go.Size(25, 32);
         case 'Transfer': return new go.Size(38, 20);
@@ -92,6 +98,12 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
       case 'Diaphragm': return new go.Size(52, 29);
       case 'Manual Valve': return new go.Size(32, 36);
       case 'Tester': return new go.Size(46, 31);
+      case 'Hydraulic Node / Junction': return new go.Size(36, 24);
+      case 'Hydraulic Target / Sink': return new go.Size(48, 34);
+      case 'Flag': return new go.Size(38, 38);
+      case 'Boundary': return new go.Size(30, 50);
+      case 'Off-page Connector': return new go.Size(50, 34);
+      case 'Function Point': return new go.Size(40, 40);
       case 'Filter': return new go.Size(38, 34);
       case 'FIP': return new go.Size(38, 50);
       case 'Transfer': return new go.Size(60, 30);
@@ -189,6 +201,26 @@ export function installApprovedPidSymbols(target: go.Diagram | go.Palette, optio
     { category: 'Diaphragm', source: './pid/diaphragm.svg', width: 110, height: 60, rotatable: true, ports: inlinePorts },
     { category: 'Manual Valve', source: './pid/manual-valve.svg', width: 80, height: 90, rotatable: true, ports: inlinePorts },
     { category: 'Tester', source: './pid/tester.svg', width: 90, height: 60, ports: [{ id: 'TEST', spot: go.Spot.Bottom, from: true, to: true, stroke: gray }] },
+    { category: 'Hydraulic Node / Junction', source: './reliability/node.svg?v=1', width: 100, height: 70, ports: [
+      { id: 'LEFT', spot: go.Spot.Left, from: true, to: true },
+      { id: 'RIGHT', spot: go.Spot.Right, from: true, to: true },
+      { id: 'TOP', spot: go.Spot.Top, from: true, to: true },
+      { id: 'BOTTOM', spot: go.Spot.Bottom, from: true, to: true }
+    ]},
+    { category: 'Hydraulic Target / Sink', source: './reliability/target.svg?v=1', width: 100, height: 70, ports: [{ id: 'IN', spot: go.Spot.Left, from: false, to: true }] },
+    { category: 'Flag', source: './reliability/flag.svg?v=1', width: 80, height: 80, ports: [{ id: 'COND', spot: go.Spot.Right, from: true, to: false, stroke: control }] },
+    { category: 'Boundary', source: './reliability/boundary.svg?v=1', width: 70, height: 100, ports: [
+      { id: 'IN', spot: go.Spot.Left, from: true, to: true },
+      { id: 'OUT', spot: go.Spot.Right, from: true, to: true }
+    ]},
+    { category: 'Off-page Connector', source: './reliability/off-page.svg?v=1', width: 100, height: 70, ports: [
+      { id: 'IN', spot: go.Spot.Left, from: true, to: true },
+      { id: 'OUT', spot: go.Spot.Right, from: true, to: true }
+    ]},
+    { category: 'Function Point', source: './reliability/function-point.svg?v=1', width: 80, height: 80, ports: [
+      { id: 'IN', spot: go.Spot.Left, from: false, to: true },
+      { id: 'TEST', spot: go.Spot.Right, from: true, to: true, stroke: gray }
+    ]},
     { category: 'Filter', source: './pid/filter.svg', width: 90, height: 80, rotatable: true, ports: inlinePorts },
     { category: 'FIP', source: './pid/fip.svg', width: 70, height: 90, rotatable: true, ports: [
       { id: 'PROC', spot: go.Spot.Bottom, from: false, to: true },

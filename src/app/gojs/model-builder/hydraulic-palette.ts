@@ -9,6 +9,8 @@ interface PaletteNodeData {
   groupLabel: string;
   description: string;
   source: string;
+  reliabilityRole?: string;
+  testCriterion?: string;
 }
 
 /**
@@ -31,11 +33,17 @@ const ITEMS: PaletteNodeData[] = [
   { key: 'tpl-kd', name: 'NEW-KD', type: 'KD', category: 'KD', kbClass: 'HYDRAULIC.KD', groupLabel: 'Valves', description: 'Project-specific in-line hydraulic device', source: './pid/kd.svg' },
   { key: 'tpl-fip', name: 'NEW-FIP', type: 'FIP', category: 'FIP', kbClass: 'HYDRAULIC.FIP', groupLabel: 'Instrumentation', description: 'Process instrumentation / interface point', source: './pid/fip.svg' },
 
-  { key: 'tpl-source', name: 'NEW-SOURCE', type: 'Source', category: 'Source', kbClass: 'HYDRAULIC.SOURCE', groupLabel: 'Interfaces', description: 'Hydraulic source or boundary condition', source: './pid/source.svg' },
-  { key: 'tpl-transfer', name: 'NEW-TRANSFER', type: 'Transfer', category: 'Transfer', kbClass: 'HYDRAULIC.TRANSFER', groupLabel: 'Interfaces', description: 'Off-page or inter-system transfer connection', source: './pid/transfer.svg' },
-  { key: 'tpl-tester', name: 'NEW-TEST', type: 'Tester', category: 'Tester', kbClass: 'HYDRAULIC.TESTER', groupLabel: 'Interfaces', description: 'Test or temporary connection point', source: './pid/tester.svg' },
+  { key: 'tpl-source', name: 'NEW-SOURCE', type: 'Source', category: 'Source', kbClass: 'HYDRAULIC.SOURCE', groupLabel: 'Reliability Structure', description: 'Functional hydraulic source for backward reliability tracing', source: './pid/source.svg', reliabilityRole: 'SOURCE' },
+  { key: 'tpl-hyd-node', name: 'NEW-NODE', type: 'Hydraulic Node / Junction', category: 'Hydraulic Node / Junction', kbClass: 'HYDRAULIC.NODE', groupLabel: 'Reliability Structure', description: 'Topology node / tee used to split or merge hydraulic paths', source: './reliability/node.svg?v=1', reliabilityRole: 'NODE' },
+  { key: 'tpl-hyd-target', name: 'NEW-TARGET', type: 'Hydraulic Target / Sink', category: 'Hydraulic Target / Sink', kbClass: 'HYDRAULIC.TARGET', groupLabel: 'Reliability Structure', description: 'Terminal consumer or required hydraulic function point', source: './reliability/target.svg?v=1', reliabilityRole: 'TARGET' },
+  { key: 'tpl-tester', name: 'NEW-TEST', type: 'Tester', category: 'Tester', kbClass: 'HYDRAULIC.TESTER', groupLabel: 'Reliability Structure', description: 'Reliability test point: evaluates flow availability by tracing upstream paths', source: './pid/tester.svg', reliabilityRole: 'TESTER', testCriterion: 'FLOW_AVAILABLE' },
+  { key: 'tpl-test-link', name: 'TEST-LINK', type: 'Test Link', category: 'Test Link', kbClass: 'HYDRAULIC.TEST_LINK', groupLabel: 'Reliability Structure', description: 'Logical link between a tested process point and its Tester', source: './pid/test-link.svg', reliabilityRole: 'TEST_LINK' },
+  { key: 'tpl-hyd-flag', name: 'NEW-FLAG', type: 'Flag', category: 'Flag', kbClass: 'HYDRAULIC.FLAG', groupLabel: 'Reliability Structure', description: 'External PSA condition, plant state or mission flag', source: './reliability/flag.svg?v=1', reliabilityRole: 'FLAG' },
+  { key: 'tpl-hyd-boundary', name: 'NEW-BND', type: 'Boundary', category: 'Boundary', kbClass: 'HYDRAULIC.BOUNDARY', groupLabel: 'Reliability Structure', description: 'Explicit model or system boundary', source: './reliability/boundary.svg?v=1', reliabilityRole: 'BOUNDARY' },
+  { key: 'tpl-hyd-offpage', name: 'NEW-REF', type: 'Off-page Connector', category: 'Off-page Connector', kbClass: 'HYDRAULIC.OFF_PAGE', groupLabel: 'Reliability Structure', description: 'Continuation to another diagram or system view', source: './reliability/off-page.svg?v=1', reliabilityRole: 'OFF_PAGE' },
+  { key: 'tpl-hyd-function', name: 'NEW-FUNC', type: 'Function Point', category: 'Function Point', kbClass: 'HYDRAULIC.FUNCTION_POINT', groupLabel: 'Reliability Structure', description: 'Named hydraulic function used as an AD / FT success criterion', source: './reliability/function-point.svg?v=1', reliabilityRole: 'FUNCTION_POINT', testCriterion: 'FLOW_AVAILABLE' },
+  { key: 'tpl-transfer', name: 'NEW-TRANSFER', type: 'Transfer', category: 'Transfer', kbClass: 'HYDRAULIC.TRANSFER', groupLabel: 'Interfaces', description: 'Off-page or inter-system transfer connection', source: './pid/transfer.svg', reliabilityRole: 'BOUNDARY' },
   { key: 'tpl-hydraulic-link', name: 'HYD-LINK', type: 'Hydraulic Link', category: 'Hydraulic Link', kbClass: 'HYDRAULIC.LINK', groupLabel: 'Connections', description: 'Standard hydraulic process connection', source: './pid/hydraulic-link.svg' },
-  { key: 'tpl-test-link', name: 'TEST-LINK', type: 'Test Link', category: 'Test Link', kbClass: 'HYDRAULIC.TEST_LINK', groupLabel: 'Connections', description: 'Dedicated test / temporary connection', source: './pid/test-link.svg' },
 
   { key: 'tpl-ic', name: 'I&C-SUPPORT', type: 'I&C', category: 'I&C', kbClass: 'SUPPORT.IC', groupLabel: 'Support', description: 'Instrumentation and control dependency', source: './pid/ic.svg' },
   { key: 'tpl-electrical-panel', name: 'ELEC-PANEL', type: 'Electrical Supply Panel', category: 'Electrical Supply Panel', kbClass: 'SUPPORT.ELECTRICAL_SUPPLY_PANEL', groupLabel: 'Support', description: 'Electrical power supply dependency', source: './pid/electrical-supply-panel.svg' },
@@ -62,7 +70,7 @@ export function createHydraulicPalette(host: HTMLDivElement): go.Palette {
       alignment: go.GridAlignment.Position,
       sorting: go.GridSorting.Ascending,
       comparer: (a: go.Part, b: go.Part) => {
-        const order = ['Equipment', 'Valves', 'Instrumentation', 'Interfaces', 'Connections', 'Support'];
+        const order = ['Reliability Structure', 'Equipment', 'Valves', 'Instrumentation', 'Interfaces', 'Connections', 'Support'];
         const ga = order.indexOf(a.data?.groupLabel ?? '');
         const gb = order.indexOf(b.data?.groupLabel ?? '');
         if (ga !== gb) return ga - gb;

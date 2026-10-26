@@ -29,6 +29,8 @@ interface SystemTableRow {
   outputs: number;
   support: string;
   status: string;
+  reliabilityRole?: string;
+  testCriterion?: string;
 }
 
 interface EngineeringSystem {
@@ -360,19 +362,21 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
   private syncSystemTable(): void {
     if (!this.diagram) return;
     const model = this.diagram.model as go.GraphLinksModel;
-    const nodes = model.nodeDataArray as Array<{ key: number; name: string; type: string }>;
+    const nodes = model.nodeDataArray as Array<{ key: number; name: string; type: string; kbClass?: string; reliabilityRole?: string; testCriterion?: string }>;
     const links = model.linkDataArray as Array<{ from: number; to: number }>;
 
     this.systemRows = nodes.map(node => ({
       key: node.key,
       identifier: node.name,
       componentType: node.type,
-      kbClass: this.resolveKbClass(node.type),
+      kbClass: node.kbClass ?? this.resolveKbClass(node.type),
       train: this.resolveTrain(node.name),
       inputs: links.filter(link => link.to === node.key).length,
       outputs: links.filter(link => link.from === node.key).length,
-      support: this.resolveSupport(node.name, node.type),
-      status: 'Valid'
+      support: node.reliabilityRole ? '—' : this.resolveSupport(node.name, node.type),
+      status: 'Valid',
+      reliabilityRole: node.reliabilityRole,
+      testCriterion: node.testCriterion
     }));
 
     if (this.selectedTableKey !== undefined && !this.systemRows.some(row => row.key === this.selectedTableKey)) {
