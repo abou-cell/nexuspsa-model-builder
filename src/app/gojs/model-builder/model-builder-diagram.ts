@@ -269,6 +269,8 @@ export function createModelBuilderDiagram(
   });
 
   diagram.toolManager.mouseWheelBehavior = go.WheelMode.Zoom;
+  diagram.toolManager.linkingTool.portGravity = 22;
+  diagram.toolManager.relinkingTool.portGravity = 22;
   diagram.toolManager.dragSelectingTool.isEnabled = true;
   diagram.toolManager.dragSelectingTool.isPartialInclusion = true;
   diagram.toolManager.dragSelectingTool.box = $(go.Part,
@@ -327,6 +329,14 @@ export function createModelBuilderDiagram(
 
   const engineeringLine = domain === 'hydraulic' || domain === 'electrical' || domain === 'hvac';
   const linkStroke = domain === 'hvac' ? '#0891b2' : '#1647ff';
+  const baseLinkWidth = domain === 'hydraulic' ? 2.2 : engineeringLine ? 1.7 : 1.6;
+  const linkBaseWidth = (link: go.Link): number =>
+    domain === 'hydraulic' && link.data?.pidClass === 'instrument' ? 1.35 : baseLinkWidth;
+  const setLinkWidth = (link: go.Link, width: number): void => {
+    const line = link.findObject('LINK_LINE') as go.Shape | null;
+    if (line) line.strokeWidth = width;
+  };
+
   diagram.linkTemplate = $(go.Link,
     {
       routing: go.Routing.Orthogonal,
@@ -335,15 +345,46 @@ export function createModelBuilderDiagram(
       relinkableTo: true,
       reshapable: true,
       selectionAdorned: true,
-      adjusting: go.LinkAdjusting.End
+      adjusting: go.LinkAdjusting.End,
+      cursor: 'pointer',
+      mouseEnter: (_e: go.InputEvent, obj: go.GraphObject) => {
+        const link = obj.part as go.Link;
+        if (link && !link.isSelected) setLinkWidth(link, linkBaseWidth(link) + 0.7);
+      },
+      mouseLeave: (_e: go.InputEvent, obj: go.GraphObject) => {
+        const link = obj.part as go.Link;
+        if (link) setLinkWidth(link, linkBaseWidth(link) + (link.isSelected ? 1.2 : 0));
+      },
+      selectionChanged: (part: go.Part) => {
+        const link = part as go.Link;
+        setLinkWidth(link, linkBaseWidth(link) + (link.isSelected ? 1.2 : 0));
+      }
     },
     $(go.Shape, {
-      stroke: engineeringLine ? linkStroke : '#64748b',
-      strokeWidth: engineeringLine ? 1.4 : 1.5
+      name: 'LINK_HIT',
+      isPanelMain: true,
+      stroke: 'rgba(15,23,42,0.001)',
+      strokeWidth: 12
     }),
     $(go.Shape, {
+        name: 'LINK_LINE',
+        isPanelMain: true,
+        stroke: engineeringLine ? linkStroke : '#64748b',
+        strokeWidth: baseLinkWidth
+      },
+      new go.Binding('stroke', 'pidClass', pidClass =>
+        domain === 'hydraulic' && pidClass === 'instrument'
+          ? '#7c3aed'
+          : engineeringLine ? linkStroke : '#64748b'
+      ),
+      new go.Binding('strokeDashArray', 'pidClass', pidClass =>
+        domain === 'hydraulic' && pidClass === 'instrument' ? [5, 3] : null
+      )
+    ),
+    $(go.Shape, {
+      name: 'LINK_ARROW',
       toArrow: engineeringLine ? '' : 'Standard',
-      stroke: '#64748b',
+      stroke: engineeringLine ? linkStroke : '#64748b',
       fill: engineeringLine ? null : '#64748b',
       scale: 0.72
     })
