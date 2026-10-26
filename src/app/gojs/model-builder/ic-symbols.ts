@@ -9,6 +9,38 @@ interface PortSpec {
 }
 
 function portsFor(category: string, groupLabel: string): PortSpec[] {
+  if (groupLabel === 'Reliability Structure') {
+    if (category === 'Signal Source') return [{ id: 'OUT', spot: go.Spot.Right, from: true, to: false }];
+    if (category === 'Signal Node') {
+      return [
+        { id: 'LEFT', spot: go.Spot.Left, from: true, to: true },
+        { id: 'RIGHT', spot: go.Spot.Right, from: true, to: true },
+        { id: 'TOP', spot: go.Spot.Top, from: true, to: true },
+        { id: 'BOTTOM', spot: go.Spot.Bottom, from: true, to: true }
+      ];
+    }
+    if (category === 'Command Target') return [{ id: 'IN', spot: go.Spot.Left, from: false, to: true }];
+    if (category === 'Signal Tester') return [{ id: 'TEST', spot: go.Spot.Left, from: true, to: true }];
+    if (category === 'IC Tester Link') {
+      return [
+        { id: 'A', spot: go.Spot.Left, from: true, to: true },
+        { id: 'B', spot: go.Spot.Right, from: true, to: true }
+      ];
+    }
+    if (category === 'IC Flag' || category === 'Detected Failure Flag' || category === 'Permissive / Interlock') {
+      return [{ id: 'COND', spot: go.Spot.Right, from: true, to: false }];
+    }
+    if (category === 'IC Boundary') {
+      return [
+        { id: 'IN', spot: go.Spot.Left, from: true, to: true },
+        { id: 'OUT', spot: go.Spot.Right, from: true, to: true }
+      ];
+    }
+    return [
+      { id: 'IN', spot: go.Spot.Left, from: false, to: true },
+      { id: 'OUT', spot: go.Spot.Right, from: true, to: false }
+    ];
+  }
   if (groupLabel === 'Field Sensors & Instruments') {
     return [{ id: 'OUT', spot: go.Spot.Right, from: true, to: false }];
   }

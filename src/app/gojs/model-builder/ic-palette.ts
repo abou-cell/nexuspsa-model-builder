@@ -12,6 +12,8 @@ interface IcPaletteNodeData {
   rating: string;
   source: string;
   symbolCode?: string;
+  reliabilityRole?: string;
+  testCriterion?: string;
 }
 
 const ITEMS: IcPaletteNodeData[] = IC_SYMBOLS.map((symbol, index) => ({
@@ -24,7 +26,9 @@ const ITEMS: IcPaletteNodeData[] = IC_SYMBOLS.map((symbol, index) => ({
   description: symbol.description,
   rating: symbol.rating,
   source: symbol.source,
-  symbolCode: symbol.symbolCode
+  symbolCode: symbol.symbolCode,
+  reliabilityRole: symbol.reliabilityRole,
+  testCriterion: symbol.testCriterion
 }));
 
 export function createIcPalette(host: HTMLDivElement): go.Palette {
@@ -47,6 +51,7 @@ export function createIcPalette(host: HTMLDivElement): go.Palette {
       sorting: go.GridSorting.Ascending,
       comparer: (a: go.Part, b: go.Part) => {
         const order = [
+          'Reliability Structure',
           'Field Sensors & Instruments',
           'Control & Processing',
           'HMI / Operator / Engineering',

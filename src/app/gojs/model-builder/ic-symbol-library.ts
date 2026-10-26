@@ -1,4 +1,5 @@
 export type IcGroupLabel =
+  | 'Reliability Structure'
   | 'Field Sensors & Instruments'
   | 'Control & Processing'
   | 'HMI / Operator / Engineering'
@@ -17,9 +18,24 @@ export interface IcSymbolDefinition {
   height: number;
   source: string;
   symbolCode?: string;
+  reliabilityRole?: string;
+  testCriterion?: string;
 }
 
 export const IC_SYMBOLS: readonly IcSymbolDefinition[] = [
+  { category: 'Signal Source', name: 'Signal Source', description: 'Origin of a logical, digital or analog I&C signal', rating: 'Signal boundary', kbClass: 'IC.SIGNAL_SOURCE', groupLabel: 'Reliability Structure', width: 92, height: 64, source: './reliability/signal-source.svg?v=1', reliabilityRole: 'SOURCE' },
+  { category: 'Signal Node', name: 'Signal Node / Junction', description: 'Topology node for signal fan-out or fan-in', rating: 'Signal junction', kbClass: 'IC.SIGNAL_NODE', groupLabel: 'Reliability Structure', width: 90, height: 54, source: './reliability/node.svg?v=1', reliabilityRole: 'NODE' },
+  { category: 'Logic Node', name: 'Logic / Decision Node', description: 'Generic reliability-relevant control or decision logic', rating: 'Logic function', kbClass: 'IC.LOGIC_NODE', groupLabel: 'Reliability Structure', width: 90, height: 62, source: './reliability/logic.svg?v=1', reliabilityRole: 'LOGIC' },
+  { category: 'AND Logic', name: 'AND Logic', description: 'All connected conditions are required', rating: 'Boolean AND', kbClass: 'IC.AND_LOGIC', groupLabel: 'Reliability Structure', width: 84, height: 58, source: './reliability/and.svg?v=1', reliabilityRole: 'LOGIC' },
+  { category: 'OR Logic', name: 'OR Logic', description: 'Any connected condition is sufficient', rating: 'Boolean OR', kbClass: 'IC.OR_LOGIC', groupLabel: 'Reliability Structure', width: 84, height: 58, source: './reliability/or.svg?v=1', reliabilityRole: 'LOGIC' },
+  { category: 'Voting k/N', name: 'Voting k/N', description: 'Configurable voting logic such as 1oo2, 2oo3 or 2oo4', rating: 'k-out-of-N', kbClass: 'IC.VOTING_LOGIC', groupLabel: 'Reliability Structure', width: 90, height: 62, source: './reliability/voter.svg?v=1', symbolCode: 'k/N', reliabilityRole: 'LOGIC' },
+  { category: 'Permissive / Interlock', name: 'Permissive / Interlock', description: 'Logical condition authorizing or inhibiting a command', rating: 'Boolean condition', kbClass: 'IC.PERMISSIVE_INTERLOCK', groupLabel: 'Reliability Structure', width: 90, height: 62, source: './reliability/permissive.svg?v=1', reliabilityRole: 'FLAG' },
+  { category: 'Command Target', name: 'Command Target', description: 'Final command destination such as valve, motor or trip device', rating: 'Command endpoint', kbClass: 'IC.COMMAND_TARGET', groupLabel: 'Reliability Structure', width: 92, height: 64, source: './reliability/command-target.svg?v=1', reliabilityRole: 'TARGET' },
+  { category: 'Signal Tester', name: 'Signal Tester', description: 'Reliability test point for command or signal availability', rating: 'Test: signal available', kbClass: 'IC.SIGNAL_TESTER', groupLabel: 'Reliability Structure', width: 82, height: 68, source: './reliability/tester.svg?v=1', reliabilityRole: 'TESTER', testCriterion: 'SIGNAL_AVAILABLE' },
+  { category: 'IC Tester Link', name: 'Tester Link', description: 'Logical connection between a signal point and its Tester', rating: 'Reliability relation', kbClass: 'IC.TEST_LINK', groupLabel: 'Reliability Structure', width: 96, height: 40, source: './reliability/test-link.svg?v=1', reliabilityRole: 'TEST_LINK' },
+  { category: 'IC Flag', name: 'Flag / Plant Condition', description: 'Plant state, maintenance, bypass or external PSA condition', rating: 'Boolean condition', kbClass: 'IC.FLAG', groupLabel: 'Reliability Structure', width: 72, height: 72, source: './reliability/flag.svg?v=1', reliabilityRole: 'FLAG' },
+  { category: 'Detected Failure Flag', name: 'Detected Failure Flag', description: 'Condition representing an I&C fault detected by diagnostics', rating: 'Detected fault', kbClass: 'IC.DETECTED_FAILURE_FLAG', groupLabel: 'Reliability Structure', width: 72, height: 72, source: './reliability/detected-flag.svg?v=1', reliabilityRole: 'FLAG' },
+  { category: 'IC Boundary', name: 'I&C Boundary / Interface', description: 'Explicit interface between I&C systems, levels or model scopes', rating: 'Boundary', kbClass: 'IC.BOUNDARY', groupLabel: 'Reliability Structure', width: 70, height: 88, source: './reliability/boundary.svg?v=1', reliabilityRole: 'BOUNDARY' },
   { category: 'Temperature Sensor', name: 'Temperature Sensor', description: 'Measures process temperature', rating: 'RTD / TC · 4–20 mA', kbClass: 'IC.TEMPERATURE_SENSOR', groupLabel: 'Field Sensors & Instruments', width: 72, height: 72, source: './ic/instrument-bubble.svg?v=1', symbolCode: 'T' },
   { category: 'Pressure Sensor', name: 'Pressure Sensor', description: 'Measures process pressure', rating: '0–250 bar · 4–20 mA', kbClass: 'IC.PRESSURE_SENSOR', groupLabel: 'Field Sensors & Instruments', width: 72, height: 72, source: './ic/instrument-bubble.svg?v=1', symbolCode: 'P' },
   { category: 'Flow Sensor', name: 'Flow Sensor', description: 'Measures process flow rate', rating: 'FT · 4–20 mA / HART', kbClass: 'IC.FLOW_SENSOR', groupLabel: 'Field Sensors & Instruments', width: 88, height: 62, source: './ic/flow-sensor.svg?v=1', symbolCode: 'F' },
