@@ -124,10 +124,15 @@ export function generateHydraulicFaultTreeFromDiagram(
     (outgoing.get(node.key) ?? 0) === 0
   );
 
+  const preferredSink = sinkCandidates.find(node =>
+    /TRANSFER|TARGET|SINK|RETURN/i.test(`${node.type ?? ''} ${node.name ?? ''}`)
+  );
+
   const targetRaw =
     selectedNode && isEligibleTarget(selectedNode) && (incoming.get(selectedNode.key) ?? 0) > 0
       ? selectedNode
-      : sinkCandidates[sinkCandidates.length - 1]
+      : preferredSink
+        ?? sinkCandidates[sinkCandidates.length - 1]
         ?? rawNodes.find(node => isEligibleTarget(node) && (incoming.get(node.key) ?? 0) > 0);
 
   if (!targetRaw) {
