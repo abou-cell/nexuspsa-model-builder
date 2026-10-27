@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, NgZone, OnDestroy, ViewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import * as go from 'gojs';
 import {
@@ -161,7 +161,7 @@ export class GeneratedFtComponent implements AfterViewInit, OnDestroy {
 
   private diagram?: go.Diagram;
 
-  constructor() {
+  constructor(private readonly zone: NgZone) {
     const stored = sessionStorage.getItem(GENERATED_FT_STORAGE_KEY);
     if (stored) {
       try {
@@ -323,7 +323,9 @@ export class GeneratedFtComponent implements AfterViewInit, OnDestroy {
 
     diagram.addDiagramListener('ChangedSelection', () => {
       const part = diagram.selection.first();
-      this.selectedNode = part instanceof go.Node ? part.data as GeneratedFaultTreeNode : undefined;
+      this.zone.run(() => {
+        this.selectedNode = part instanceof go.Node ? part.data as GeneratedFaultTreeNode : undefined;
+      });
     });
 
     return diagram;
