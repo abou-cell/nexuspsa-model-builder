@@ -20,9 +20,8 @@ export const routes: Routes = [
   },
   {
     path: 'generated-ft',
-    loadComponent: () => import('./features/model-builder/model-builder.component')
-      .then(m => m.ModelBuilderComponent),
-    data: { workspace: 'generated-ft' }
+    loadComponent: () => import('./features/generated-ft/generated-ft.component')
+      .then(m => m.GeneratedFtComponent)
   },
   {
     path: 'knowledge-base',
