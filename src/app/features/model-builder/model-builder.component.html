@@ -69,6 +69,9 @@
                   [class.active]="inspectorVisible && inspectorTab === 'rules'"
                   (click)="setInspectorTab('rules')">ƒ Rules</button>
         </div>
+        <button *ngIf="domain === 'hydraulic'" type="button" class="validate"
+                (click)="generateFaultTree()"
+                title="Generate a Fault Tree from the current hydraulic model">⚙ Generate FT</button>
         <button type="button" class="validate">✓ Validate</button>
       </div>
 
@@ -122,6 +125,7 @@
         <span>{{ selectedSystemId }} system</span>
         <span>{{ selectionCount }} selected</span>
         <span>0 validation errors</span>
+        <span *ngIf="generationError" style="color:#b91c1c;font-weight:700">{{ generationError }}</span>
         <span class="spacer"></span>
         <span>Snap: 10 px</span>
         <span>{{ zoomPercent }}%</span>
