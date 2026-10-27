@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import * as go from 'gojs';
 import {
@@ -13,6 +13,10 @@ import {
 import { createHydraulicPalette } from '../../gojs/model-builder/hydraulic-palette';
 import { createElectricalPalette } from '../../gojs/model-builder/electrical-palette';
 import { createHvacPalette } from '../../gojs/model-builder/hvac-palette';
+import {
+  GENERATED_FT_STORAGE_KEY,
+  generateHydraulicFaultTreeFromDiagram
+} from '../../core/ft-generation/model-builder-ft-adapter';
 
 interface PaletteItem {
   label: string;
@@ -114,6 +118,7 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
   zoomPercent = 100;
   selectionCount = 0;
   paletteWidth = 300;
+  generationError = '';
 
   private diagram?: go.Diagram;
   private componentPalette?: go.Palette;
@@ -138,7 +143,10 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
     this.diagram?.requestUpdate();
   };
 
-  constructor(private readonly route: ActivatedRoute) {
+  constructor(
+    private readonly route: ActivatedRoute,
+    private readonly router: Router
+  ) {
     this.subscriptions.add(this.route.params.subscribe(params => {
       const candidate = params['domain'] as ModelDomain | undefined;
       if (candidate && ['hydraulic', 'electrical', 'ic', 'hvac'].includes(candidate)) {
@@ -284,6 +292,28 @@ export class ModelBuilderComponent implements AfterViewInit, OnDestroy {
   toggleInspector(): void {
     this.inspectorVisible = !this.inspectorVisible;
     setTimeout(() => this.diagram?.requestUpdate());
+  }
+
+  generateFaultTree(): void {
+    this.generationError = '';
+
+    if (this.domain !== 'hydraulic' || !this.diagram) {
+      this.generationError = 'Automatic FT generation is currently enabled for the Hydraulic workspace.';
+      return;
+    }
+
+    try {
+      const artifacts = generateHydraulicFaultTreeFromDiagram(
+        this.diagram,
+        this.selectedSystemId
+      );
+      sessionStorage.setItem(GENERATED_FT_STORAGE_KEY, JSON.stringify(artifacts));
+      void this.router.navigateByUrl('/generated-ft');
+    } catch (error) {
+      this.generationError = error instanceof Error
+        ? error.message
+        : 'Fault Tree generation failed.';
+    }
   }
 
   selectSystem(system: EngineeringSystem): void {
