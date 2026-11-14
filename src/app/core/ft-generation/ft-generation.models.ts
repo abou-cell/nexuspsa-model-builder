@@ -121,7 +121,7 @@ export interface TraceabilityRecord {
   reason: string;
 }
 
-export type GeneratedGateType = 'OR' | 'AND' | 'KOFN';
+export type GeneratedGateType = 'OR' | 'AND' | 'KOFN' | 'NAND' | 'NOR' | 'XOR';
 export type GeneratedFaultTreeCategory =
   | 'TOP_EVENT'
   | 'GATE'
