@@ -138,6 +138,11 @@ export interface GeneratedFaultTreeNode {
   gateType?: GeneratedGateType;
   recordType: 'GAT' | 'BEV' | 'HEV' | 'FTR';
   siblingOrder?: number;
+  k?: number;
+  symbol?: 'CIRCLE' | 'DIAMOND';
+  tester?: boolean;
+  tagColor?: string | null;
+  negated?: boolean;
 }
 
 export interface GeneratedFaultTreeLink {
