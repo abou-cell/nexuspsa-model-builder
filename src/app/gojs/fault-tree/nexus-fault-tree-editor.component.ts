@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -62,6 +63,7 @@ class RiskSpectrumBranchLink extends go.Link {
 @Component({
   selector: 'app-nexus-fault-tree-editor',
   standalone: true,
+  imports: [CommonModule],
   template: `
     <div class="ft-shell">
       <section class="diagram-shell">
