@@ -3,12 +3,9 @@ import { Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import {
-  FtGenerationArtifacts,
   GeneratedFaultTreeModel,
   GeneratedFaultTreeNode
 } from '../../core/ft-generation/ft-generation.models';
-import { GENERATED_FT_STORAGE_KEY } from '../../core/ft-generation/model-builder-ft-adapter';
-import { runPtrLossOfFlowExample } from '../../core/ft-generation/ptr-loss-of-flow.example';
 import { NexusFaultTreeEditorComponent } from '../../gojs/fault-tree/nexus-fault-tree-editor.component';
 
 type WorkspaceMode = 'generation' | 'generated';
@@ -22,12 +19,22 @@ interface FtBrowserRecord {
   sourceEventId?: string;
 }
 
-function topEventOnlyModel(id: string, description: string): GeneratedFaultTreeModel {
-  return {
-    id: `EI-TREE-${id}`,
-    description,
-    topGateId: id,
-    nodes: [{
+const SELECTED_GENERATED_EI_KEY = 'nexuspsa.generated-ft.selected-ei';
+
+function currentDateLabel(): string {
+  return new Date().toLocaleDateString('en-GB');
+}
+
+function makeEiTree(
+  id: string,
+  description: string,
+  system: string,
+  trainAEvent: string,
+  trainBEvent: string,
+  supportEvent: string
+): GeneratedFaultTreeModel {
+  const nodes: GeneratedFaultTreeNode[] = [
+    {
       key: 'TOP-0001',
       category: 'TOP_EVENT',
       id,
@@ -35,13 +42,106 @@ function topEventOnlyModel(id: string, description: string): GeneratedFaultTreeM
       state: 'NORMAL',
       gateType: 'OR',
       recordType: 'GAT'
-    }],
-    links: []
+    },
+    {
+      key: 'G-TRAIN',
+      category: 'GATE',
+      id: `G-${system}-TRAINS`,
+      description: `Required ${system} trains unavailable`,
+      state: 'NORMAL',
+      gateType: 'AND',
+      recordType: 'GAT',
+      siblingOrder: 0
+    },
+    {
+      key: 'BE-A',
+      category: 'BASIC_EVENT',
+      id: `${system}-A-FAIL`,
+      description: trainAEvent,
+      state: 'NORMAL',
+      recordType: 'BEV',
+      siblingOrder: 0
+    },
+    {
+      key: 'BE-B',
+      category: 'BASIC_EVENT',
+      id: `${system}-B-FAIL`,
+      description: trainBEvent,
+      state: 'NORMAL',
+      recordType: 'BEV',
+      siblingOrder: 1
+    },
+    {
+      key: 'G-SUPPORT',
+      category: 'GATE',
+      id: `G-${system}-SUPPORT`,
+      description: `Loss of ${system} support functions`,
+      state: 'NORMAL',
+      gateType: 'OR',
+      recordType: 'GAT',
+      siblingOrder: 1
+    },
+    {
+      key: 'BE-SUPPORT',
+      category: 'BASIC_EVENT',
+      id: `${system}-SUP-FAIL`,
+      description: supportEvent,
+      state: 'NORMAL',
+      recordType: 'BEV',
+      siblingOrder: 0
+    },
+    {
+      key: 'HE-MAINT',
+      category: 'HOUSE_EVENT',
+      id: `HE-${system}-MAINT`,
+      description: `${system} maintenance configuration active`,
+      state: 'NORMAL',
+      recordType: 'HEV',
+      siblingOrder: 1
+    },
+    {
+      key: 'XFR-EXT',
+      category: 'TRANSFER',
+      id: `XFR-${system}-AUX`,
+      description: `Transfer to auxiliary ${system} support FT`,
+      state: 'NORMAL',
+      recordType: 'FTR',
+      siblingOrder: 2
+    }
+  ];
+
+  return {
+    id: `EI-TREE-${id}`,
+    description,
+    topGateId: id,
+    nodes,
+    links: [
+      { key: 'L-T-TRAIN', from: 'TOP-0001', to: 'G-TRAIN', fromPort: 'OUT', toPort: 'IN' },
+      { key: 'L-T-SUP', from: 'TOP-0001', to: 'G-SUPPORT', fromPort: 'OUT', toPort: 'IN' },
+      { key: 'L-T-XFR', from: 'TOP-0001', to: 'XFR-EXT', fromPort: 'OUT', toPort: 'IN' },
+      { key: 'L-TRAIN-A', from: 'G-TRAIN', to: 'BE-A', fromPort: 'OUT', toPort: 'IN' },
+      { key: 'L-TRAIN-B', from: 'G-TRAIN', to: 'BE-B', fromPort: 'OUT', toPort: 'IN' },
+      { key: 'L-SUP-BE', from: 'G-SUPPORT', to: 'BE-SUPPORT', fromPort: 'OUT', toPort: 'IN' },
+      { key: 'L-SUP-HE', from: 'G-SUPPORT', to: 'HE-MAINT', fromPort: 'OUT', toPort: 'IN' }
+    ]
   };
 }
 
-function currentDateLabel(): string {
-  return new Date().toLocaleDateString('en-GB');
+function generatedFromEi(record: FtBrowserRecord): FtBrowserRecord {
+  return {
+    id: `FT-${record.id}`,
+    description: `Generated FT — ${record.description}`,
+    sourceEventId: record.id,
+    editedDate: currentDateLabel(),
+    editedBy: 'AR',
+    model: {
+      ...record.model,
+      id: `FT-${record.id}`,
+      description: `Generated FT — ${record.description}`,
+      nodes: record.model.nodes.map(node => ({ ...node })),
+      links: record.model.links.map(link => ({ ...link }))
+    }
+  };
 }
 
 @Component({
@@ -61,7 +161,8 @@ function currentDateLabel(): string {
           <button type="button" class="generate" *ngIf="mode === 'generation'" (click)="generateSelected()">
             Generate selected FT
           </button>
-          <button type="button" class="primary">Save model</button>
+          <button type="button" class="primary" *ngIf="mode === 'generation'">Save model</button>
+          <span class="readonly-label" *ngIf="mode === 'generated'">Read-only generated trees</span>
         </div>
       </div>
 
@@ -70,7 +171,8 @@ function currentDateLabel(): string {
         <main class="diagram-panel" [class.properties-open]="propertiesOpen">
           <app-nexus-fault-tree-editor
             [model]="selectedRecord.model"
-            [readOnly]="false"
+            [readOnly]="mode === 'generated'"
+            [showPalette]="mode === 'generation'"
             (selectedNodeChange)="selectedNode = $event"
             (propertiesRequested)="propertiesOpen = !propertiesOpen">
           </app-nexus-fault-tree-editor>
@@ -131,8 +233,8 @@ function currentDateLabel(): string {
               {{ mode === 'generation' ? 'EI Trees in project' : 'Generated Fault Trees in project' }}
               ({{ records.length }})
             </strong>
-            <span *ngIf="mode === 'generation'">Top Event = événement indésirable sélectionné</span>
-            <span *ngIf="mode === 'generated'">Generated from the EI / Undesired Event list</span>
+            <span *ngIf="mode === 'generation'">Editable EI / Top Event trees · palette: OR, AND, K/N, BE, House Event, Transfer</span>
+            <span *ngIf="mode === 'generated'">Visualization only · generated from the EI list · no construction palette</span>
           </div>
         </section>
       </div>
@@ -149,6 +251,7 @@ function currentDateLabel(): string {
     .workspace-actions button{height:31px;border:1px solid var(--nps-border);border-radius:8px;background:#fff;color:var(--nps-text);padding:0 12px;font-size:10px;cursor:pointer}
     .workspace-actions .primary{background:var(--nps-blue);border-color:var(--nps-blue);color:#fff;font-weight:700}
     .workspace-actions .generate{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8;font-weight:700}
+    .readonly-label{padding:6px 9px;border:1px solid #d7e0ea;border-radius:7px;background:#f8fafc;color:#64748b;font-size:9px;font-weight:700}
     .workspace-body{min-height:0;display:grid;background:var(--nps-app-bg);overflow:hidden}
     .diagram-panel{position:relative;min-width:0;min-height:0;overflow:hidden;background:#fff}
     .diagram-panel.properties-open{display:grid;grid-template-columns:minmax(0,1fr) 310px}
@@ -190,7 +293,42 @@ export class FaultTreeWorkspaceComponent implements OnDestroy {
       description: 'Loss of PTR cooling flow',
       editedDate: currentDateLabel(),
       editedBy: 'AR',
-      model: topEventOnlyModel('UE-PTR-LOSS-FLOW', 'Loss of PTR cooling flow')
+      model: makeEiTree(
+        'UE-PTR-LOSS-FLOW',
+        'Loss of PTR cooling flow',
+        'PTR',
+        'PTR train A pump / flow path unavailable',
+        'PTR train B pump / flow path unavailable',
+        'Loss of PTR electrical or I&C support'
+      )
+    },
+    {
+      id: 'UE-RRI-LOSS-COOLING',
+      description: 'Loss of RRI component cooling water',
+      editedDate: currentDateLabel(),
+      editedBy: 'AR',
+      model: makeEiTree(
+        'UE-RRI-LOSS-COOLING',
+        'Loss of RRI component cooling water',
+        'RRI',
+        'RRI train A cooling function unavailable',
+        'RRI train B cooling function unavailable',
+        'Loss of RRI electrical / heat-sink support'
+      )
+    },
+    {
+      id: 'UE-SEC-LOSS-UHS',
+      description: 'Loss of SEC ultimate heat-sink supply',
+      editedDate: currentDateLabel(),
+      editedBy: 'AR',
+      model: makeEiTree(
+        'UE-SEC-LOSS-UHS',
+        'Loss of SEC ultimate heat-sink supply',
+        'SEC',
+        'SEC train A service-water path unavailable',
+        'SEC train B service-water path unavailable',
+        'Loss of SEC power / ultimate heat-sink support'
+      )
     }
   ];
 
@@ -213,10 +351,7 @@ export class FaultTreeWorkspaceComponent implements OnDestroy {
   openGenerated(): void { void this.router.navigateByUrl('/generated-ft'); }
 
   generateSelected(): void {
-    if (this.selectedRecord.id !== 'UE-PTR-LOSS-FLOW') return;
-
-    const artifacts = runPtrLossOfFlowExample();
-    sessionStorage.setItem(GENERATED_FT_STORAGE_KEY, JSON.stringify(artifacts));
+    sessionStorage.setItem(SELECTED_GENERATED_EI_KEY, this.selectedRecord.id);
     void this.router.navigateByUrl('/generated-ft');
   }
 
@@ -242,44 +377,23 @@ export class FaultTreeWorkspaceComponent implements OnDestroy {
 
   private loadRecords(): void {
     if (this.mode === 'generation') {
-      this.records = this.generationRecords.map(record => ({ ...record }));
+      this.records = this.generationRecords.map(record => ({
+        ...record,
+        model: {
+          ...record.model,
+          nodes: record.model.nodes.map(node => ({ ...node })),
+          links: record.model.links.map(link => ({ ...link }))
+        }
+      }));
       this.selectedRecord = this.records[0];
       return;
     }
 
-    const generated: FtBrowserRecord[] = [];
-    const stored = sessionStorage.getItem(GENERATED_FT_STORAGE_KEY);
-
-    if (stored) {
-      try {
-        const artifacts = JSON.parse(stored) as FtGenerationArtifacts;
-        generated.push({
-          id: artifacts.faultTree.id,
-          description: artifacts.faultTree.description,
-          sourceEventId: artifacts.undesiredEvent.id,
-          editedDate: currentDateLabel(),
-          editedBy: 'AR',
-          model: artifacts.faultTree
-        });
-      } catch {
-        sessionStorage.removeItem(GENERATED_FT_STORAGE_KEY);
-      }
-    }
-
-    if (!generated.length) {
-      const artifacts = runPtrLossOfFlowExample();
-      generated.push({
-        id: artifacts.faultTree.id,
-        description: artifacts.faultTree.description,
-        sourceEventId: artifacts.undesiredEvent.id,
-        editedDate: currentDateLabel(),
-        editedBy: 'AR',
-        model: artifacts.faultTree
-      });
-    }
-
-    this.records = generated;
-    this.selectedRecord = this.records[0];
+    this.records = this.generationRecords.map(generatedFromEi);
+    const requestedEi = sessionStorage.getItem(SELECTED_GENERATED_EI_KEY);
+    this.selectedRecord =
+      this.records.find(record => record.sourceEventId === requestedEi)
+      ?? this.records[0];
   }
 
   ngOnDestroy(): void {
