@@ -107,6 +107,17 @@ function makeEiTree(
       state: 'NORMAL',
       recordType: 'FTR',
       siblingOrder: 2
+    },
+    {
+      key: 'TESTER',
+      category: 'BASIC_EVENT',
+      id: `TESTER-${system}`,
+      description: `${system} logical tester / required function criterion`,
+      state: 'NORMAL',
+      recordType: 'BEV',
+      symbol: 'DIAMOND',
+      tester: true,
+      siblingOrder: 3
     }
   ];
 
@@ -119,6 +130,7 @@ function makeEiTree(
       { key: 'L-T-TRAIN', from: 'TOP-0001', to: 'G-TRAIN', fromPort: 'OUT', toPort: 'IN' },
       { key: 'L-T-SUP', from: 'TOP-0001', to: 'G-SUPPORT', fromPort: 'OUT', toPort: 'IN' },
       { key: 'L-T-XFR', from: 'TOP-0001', to: 'XFR-EXT', fromPort: 'OUT', toPort: 'IN' },
+      { key: 'L-T-TESTER', from: 'TOP-0001', to: 'TESTER', fromPort: 'OUT', toPort: 'IN' },
       { key: 'L-TRAIN-A', from: 'G-TRAIN', to: 'BE-A', fromPort: 'OUT', toPort: 'IN' },
       { key: 'L-TRAIN-B', from: 'G-TRAIN', to: 'BE-B', fromPort: 'OUT', toPort: 'IN' },
       { key: 'L-SUP-BE', from: 'G-SUPPORT', to: 'BE-SUPPORT', fromPort: 'OUT', toPort: 'IN' },
