@@ -14,14 +14,15 @@ export const routes: Routes = [
   },
   {
     path: 'generation',
-    loadComponent: () => import('./features/model-builder/model-builder.component')
-      .then(m => m.ModelBuilderComponent),
-    data: { workspace: 'generation' }
+    loadComponent: () => import('./features/fault-tree-workspace/fault-tree-workspace.component')
+      .then(m => m.FaultTreeWorkspaceComponent),
+    data: { mode: 'generation' }
   },
   {
     path: 'generated-ft',
-    loadComponent: () => import('./features/generated-ft/generated-ft.component')
-      .then(m => m.GeneratedFtComponent)
+    loadComponent: () => import('./features/fault-tree-workspace/fault-tree-workspace.component')
+      .then(m => m.FaultTreeWorkspaceComponent),
+    data: { mode: 'generated' }
   },
   {
     path: 'knowledge-base',
