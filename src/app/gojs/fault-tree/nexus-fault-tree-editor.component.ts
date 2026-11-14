@@ -66,39 +66,43 @@ class RiskSpectrumBranchLink extends go.Link {
   imports: [CommonModule],
   template: `
     <div class="ft-shell">
-      <section class="diagram-shell">
+      <section class="diagram-shell" [class.no-palette]="!showPalette">
         <div class="diagram-toolbar">
-          <div class="toolbar-group">
-            <button type="button" title="Undo" (click)="undo()">↶</button>
-            <button type="button" title="Redo" (click)="redo()">↷</button>
-          </div>
-          <div class="toolbar-separator"></div>
+          <ng-container *ngIf="!readOnly">
+            <div class="toolbar-group">
+              <button type="button" title="Undo" (click)="undo()">↶</button>
+              <button type="button" title="Redo" (click)="redo()">↷</button>
+            </div>
+            <div class="toolbar-separator"></div>
+          </ng-container>
           <div class="toolbar-group">
             <button type="button" title="Zoom out" (click)="zoom(-0.1)">−</button>
             <span class="zoom-label">{{ zoomPercent }}%</span>
             <button type="button" title="Zoom in" (click)="zoom(0.1)">+</button>
             <button type="button" (click)="fit()">Fit</button>
-            <button
-              type="button"
-              class="negate-button"
-              [class.active]="selectedNegated"
-              [disabled]="!canNegateSelection"
-              title="Toggle Negate / NOT on selected component"
-              (click)="toggleNegateSelection()">
-              {{ selectedNegated ? '✓ Negate' : '○ Negate' }}
-            </button>
-
-            <div class="tag-color-control" [class.open]="tagPaletteOpen">
-              <button type="button" class="tag-color-button" title="Tag colour" (click)="tagPaletteOpen = !tagPaletteOpen">
-                <span class="tag-color-preview" [style.background]="activeTagColor"></span>
-                <span>▾</span>
+            <ng-container *ngIf="!readOnly">
+              <button
+                type="button"
+                class="negate-button"
+                [class.active]="selectedNegated"
+                [disabled]="!canNegateSelection"
+                title="Toggle Negate / NOT on selected component"
+                (click)="toggleNegateSelection()">
+                {{ selectedNegated ? '✓ Negate' : '○ Negate' }}
               </button>
-              <div class="tag-color-menu">
-                <button type="button" *ngFor="let color of tagColors" (click)="applyTag(color)">
-                  <span [style.background]="color"></span>
+
+              <div class="tag-color-control" [class.open]="tagPaletteOpen">
+                <button type="button" class="tag-color-button" title="Tag colour" (click)="tagPaletteOpen = !tagPaletteOpen">
+                  <span class="tag-color-preview" [style.background]="activeTagColor"></span>
+                  <span>▾</span>
                 </button>
+                <div class="tag-color-menu">
+                  <button type="button" *ngFor="let color of tagColors" (click)="applyTag(color)">
+                    <span [style.background]="color"></span>
+                  </button>
+                </div>
               </div>
-            </div>
+            </ng-container>
 
             <button type="button" class="layout-toggle" [class.active]="layoutMode === 'LEFT'"
                     title="Left-aligned RiskSpectrum layout" (click)="setLayoutMode('LEFT')">
@@ -117,10 +121,13 @@ class RiskSpectrumBranchLink extends go.Link {
               </svg>
             </button>
           </div>
-          <div class="toolbar-group push-right"><span class="status-dot"></span> GoJS Fault Tree</div>
+          <div class="toolbar-group push-right">
+            <span class="status-dot"></span>
+            {{ readOnly ? 'Generated FT · read-only' : 'GoJS Fault Tree' }}
+          </div>
         </div>
 
-        <div class="palette-toolbar">
+        <div class="palette-toolbar" *ngIf="showPalette">
           <div class="palette-toolbar-left"><strong>Fault Tree Symbols</strong></div>
           <div class="palette-toolbar-center">
             <div #paletteDiv class="palette-toolbar-canvas" aria-label="Fault Tree symbol palette"></div>
@@ -138,6 +145,7 @@ class RiskSpectrumBranchLink extends go.Link {
     :host{display:block;height:100%;min-height:0;overflow:hidden}
     .ft-shell{height:100%;min-height:0;overflow:hidden;background:#fff}
     .diagram-shell{height:100%;min-width:0;min-height:0;overflow:hidden;display:grid;grid-template-rows:42px 56px minmax(0,1fr)}
+    .diagram-shell.no-palette{grid-template-rows:42px minmax(0,1fr)}
     .diagram-toolbar{display:flex;align-items:center;gap:10px;padding:0 10px;border-bottom:1px solid var(--nps-border);background:#fff;color:var(--nps-text-muted);font-size:10px}
     .toolbar-group{display:flex;align-items:center;gap:5px}.toolbar-separator{width:1px;height:25px;background:var(--nps-border)}
     .toolbar-group button{height:28px;min-width:30px;border:1px solid var(--nps-border);border-radius:6px;background:#fff;color:var(--nps-text);cursor:pointer;font-weight:600}
@@ -161,6 +169,7 @@ export class NexusFaultTreeEditorComponent implements AfterViewInit, OnChanges, 
 
   @Input({ required: true }) model!: GeneratedFaultTreeModel;
   @Input() readOnly = false;
+  @Input() showPalette = true;
   @Output() readonly selectedNodeChange = new EventEmitter<GeneratedFaultTreeNode | null>();
   @Output() readonly propertiesRequested = new EventEmitter<void>();
 
@@ -181,7 +190,9 @@ export class NexusFaultTreeEditorComponent implements AfterViewInit, OnChanges, 
 
   ngAfterViewInit(): void {
     this.diagram = this.createDiagram(this.diagramDiv.nativeElement);
-    this.palette = this.createPalette(this.paletteDiv.nativeElement);
+    if (this.showPalette) {
+      this.palette = this.createPalette(this.paletteDiv.nativeElement);
+    }
     this.applyModel();
   }
 
