@@ -390,7 +390,7 @@ export class NexusFaultTreeEditorComponent implements AfterViewInit, OnChanges, 
           copyable: !this.readOnly && !topEvent,
           deletable: !this.readOnly && !topEvent,
           cursor: topEvent || this.readOnly ? 'default' : 'move',
-          selectionChanged: node => this.onNodeSelection(node)
+          selectionChanged: part => this.onNodeSelection(part as go.Node)
         },
         $(go.Panel, 'Vertical',
           labelPanel(topEvent ? '#d0d0d0' : '#ffffff', '#111111'),
